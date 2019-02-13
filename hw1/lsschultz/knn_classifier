@@ -1,5 +1,59 @@
-#! /usr/bin/env python3.6
+#!/usr/bin/env python3.6
 
+from functions import *
+
+import numpy as np
+
+import argparse
 import json
 
-print('hello')
+parserdescription = 'Arguments for k, training set, and test set'
+
+parser = argparse.ArgumentParser(
+                                 description=parserdescription
+                                 )
+
+parser.add_argument(
+                    'k',
+                    type=int,
+                    help='k parameter'
+                    )
+
+parser.add_argument(
+                    'train',
+                    type=str,
+                    help='Path to training set'
+                    )
+
+parser.add_argument(
+                    'test',
+                    type=str,
+                    help='Path to test set'
+                    )
+
+args = parser.parse_args()
+
+k = args.k
+
+# Open the training and test data
+train = open(args.train)
+test = open(args.test)
+
+# Load the data in opened files
+# The target feature is the lsat feature named 'label'
+train = json.load(train)
+test = json.load(test)
+
+# Standardize both the training and test data if data is numeric
+try:
+    train['data_norm'] = [standardize(i) for i in train['data']]
+    test['data_norm'] = [standardize(i) for i in test['data']]
+    datatype = 'numeric'
+
+# Skip standadization if data is categorical
+except Exception:
+    train['data_norm'] = train['data']
+    test['data_norm'] = test['data']
+    datatype = 'categorical'
+
+    distance(train['data_norm'], test['data_norm'], k, datatype)

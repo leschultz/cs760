@@ -40,6 +40,7 @@ def hamming(x, y):
 
     return distance
 
+
 def manhattan(x, y):
     '''
     Compute the Manhattan distance.
@@ -54,16 +55,15 @@ def manhattan(x, y):
     print('Need to write code')
 
 
-def distance(x, y, k, datatype):
+def nearest(x, y, k, datatype):
     '''
-    Calculate a distance metric for training.
+    Calculate a distance metric for training and give a prediction.
     Manhattan distance for numeric features.
     Hamming distance for categorical features.
 
     inputs:
         x = Training data
         y = Test data
-        k = The number of nearest neighbors
     outputs:
         distances = The calculated distances
     '''
@@ -79,8 +79,30 @@ def distance(x, y, k, datatype):
             for train_instance in x:
                 dist.append(hamming(train_instance, test_instance))
 
-            distances.append(dist)
+            # Find the indexes of the smallest k values
+            indexes = sorted(range(len(dist)), key=lambda k: dist[k])[:k]
+            matches = np.array(x)[indexes]
 
-    print(len(distances))
-    print(len(y))
+            # Create a counter for each matched class
+            classes = [i[-1] for i in matches]
+            counts ={}
+            for item in set(classes):
+                counts[item] = classes.count(item)
+
+            counts['rep'] = 6  # Test code
+
+            # Find the maximum vote
+            result = max(counts, key=lambda i: counts[i])
+            maxval = counts[result]
+
+            # Break a tie if it exists
+
+            print(high)
+            print(result)
+
+            print(classes)
+            print(counts)
+
+            distances.append(np.array(dist))
+
     return distances

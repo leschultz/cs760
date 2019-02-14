@@ -6,6 +6,7 @@ import numpy as np
 
 import argparse
 import json
+import sys
 
 parserdescription = 'Arguments for k, training set, and test set'
 
@@ -56,4 +57,9 @@ except Exception:
     test['data_norm'] = test['data']
     datatype = 'categorical'
 
-    nearest(train['data_norm'], test['data_norm'], k, datatype)
+results = nearest(train['data_norm'], test['data_norm'][5:7], k, datatype)
+results = np.array(results)
+
+# Print the data in standard output
+np.savetxt(sys.stdout.buffer, results, delimiter=',', fmt='%s')
+

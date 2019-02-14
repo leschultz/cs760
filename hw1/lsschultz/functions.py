@@ -54,7 +54,9 @@ def manhattan(x, y):
         distance = The distance.
     '''
 
-    print('Need to write code')
+    distance = sum(abs(i-j) for i, j in zip(x, y))
+
+    return distance
 
 
 def nearest(x, y, k, datatype):
@@ -67,32 +69,44 @@ def nearest(x, y, k, datatype):
         x = Training data
         y = Test data
     outputs:
-        results = The predicted value
+        results = Class votse with the predicted value
     '''
 
     results = []
-    if datatype == 'numeric':
-
-        print('Need to write code')
-
-    if datatype == 'categorical':
-        for test_instance in y:
-            dist = []
-            for train_instance in x:
+    for test_instance in y:
+        dist = []
+        for train_instance in x:
+            if datatype == 'categorical':
                 dist.append(hamming(train_instance, test_instance))
 
-            # Find the indexes of the smallest k values
-            indexes = sorted(range(len(dist)), key=lambda k: dist[k])[:k]
-            matches = np.array(x)[indexes]
+            if datatype == 'numeric':
+                dist.append(manhattan(train_instance, test_instance))
 
-            # Append classes in order
-            classes = [i[-1] for i in matches]
+        # Find the indexes of the smallest k values
+        indexes = sorted(range(len(dist)), key=lambda k: dist[k])[:k]
+        matches = np.array(x)[indexes]
 
-            # Create a counter for each matched class
-            counts = Counter(classes)  # Keeps ordered keys
-            result = max(counts, key=counts.get)
+        # Append classes in order
+        classes = [i[-1] for i in matches]
 
-            # Return an ordered result for each test instance
-            results.append(result)
+        # Create a counter for each matched class
+        counts = Counter(classes)  # Keeps ordered keys
+        result = max(counts, key=counts.get)
 
-    return print(results)
+        # The available types of classes
+        classtypes = sorted(set([i[-1] for i in x]))
+
+        # Votes in order
+        votes = []
+        for key in classtypes:
+            if key in counts:
+                votes.append(counts[key])
+            else:
+                votes.append(0)
+
+        # Store the class vote and prediction
+        votes.append(result)
+
+        results.append(votes)
+
+    return results

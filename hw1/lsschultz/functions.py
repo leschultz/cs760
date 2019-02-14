@@ -2,6 +2,8 @@
 This script standardizes the data for machine learning.
 '''
 
+from collections import Counter
+
 import numpy as np
 
 
@@ -65,10 +67,10 @@ def nearest(x, y, k, datatype):
         x = Training data
         y = Test data
     outputs:
-        distances = The calculated distances
+        results = The predicted value
     '''
 
-    distances = []  # List to append distances
+    results = []
     if datatype == 'numeric':
 
         print('Need to write code')
@@ -83,26 +85,14 @@ def nearest(x, y, k, datatype):
             indexes = sorted(range(len(dist)), key=lambda k: dist[k])[:k]
             matches = np.array(x)[indexes]
 
-            # Create a counter for each matched class
+            # Append classes in order
             classes = [i[-1] for i in matches]
-            counts ={}
-            for item in set(classes):
-                counts[item] = classes.count(item)
 
-            counts['rep'] = 6  # Test code
+            # Create a counter for each matched class
+            counts = Counter(classes)  # Keeps ordered keys
+            result = max(counts, key=counts.get)
 
-            # Find the maximum vote
-            result = max(counts, key=lambda i: counts[i])
-            maxval = counts[result]
+            # Return an ordered result for each test instance
+            results.append(result)
 
-            # Break a tie if it exists
-
-            print(high)
-            print(result)
-
-            print(classes)
-            print(counts)
-
-            distances.append(np.array(dist))
-
-    return distances
+    return print(results)

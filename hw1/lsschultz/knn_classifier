@@ -56,4 +56,4 @@ except Exception:
     test['data_norm'] = test['data']
     datatype = 'categorical'
 
-    nearest(train['data_norm'], test['data_norm'][0:1], k, datatype)
+    nearest(train['data_norm'], test['data_norm'], k, datatype)

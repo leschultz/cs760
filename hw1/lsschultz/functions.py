@@ -38,7 +38,7 @@ def hamming(x, y):
         distance = The distance.
     '''
 
-    distance = sum(1-(i==j) for i, j in zip(x, y))
+    distance = sum(i!=j for i, j in zip(x, y))
 
     return distance
 
@@ -69,7 +69,7 @@ def nearest(x, y, k, datatype):
         x = Training data
         y = Test data
     outputs:
-        results = Class votse with the predicted value
+        results = Class vote with the predicted value
     '''
 
     results = []
@@ -77,10 +77,11 @@ def nearest(x, y, k, datatype):
         dist = []
         for train_instance in x:
             if datatype == 'categorical':
-                dist.append(hamming(train_instance, test_instance))
+                dist.append(hamming(train_instance[:-1], test_instance[:-1]))
 
             if datatype == 'numeric':
-                dist.append(manhattan(train_instance, test_instance))
+                dist.append(manhattan(train_instance[:-1], test_instance[:-1]))
+
 
         # Find the indexes of the smallest k values
         indexes = sorted(range(len(dist)), key=lambda k: dist[k])[:k]

@@ -57,9 +57,8 @@ except Exception:
     test['data_norm'] = test['data']
     datatype = 'categorical'
 
-results = nearest(train['data_norm'], test['data_norm'][5:7], k, datatype)
+results = nearest(train['data_norm'], test['data_norm'], k, datatype)
 results = np.array(results)
 
 # Print the data in standard output
 np.savetxt(sys.stdout.buffer, results, delimiter=',', fmt='%s')
-

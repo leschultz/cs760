@@ -35,7 +35,7 @@ def hamming(x, y):
         x = A training set
         y = A test instance
     outputs:
-        distance = The distance.
+        distance = The distance
     '''
 
     distance = sum(i!=j for i, j in zip(x, y))
@@ -75,6 +75,8 @@ def nearest(x, y, k, datatype):
     results = []
     for test_instance in y:
         dist = []
+
+        # Compute distances between features
         for train_instance in x:
             if datatype == 'categorical':
                 dist.append(hamming(train_instance[:-1], test_instance[:-1]))
@@ -107,7 +109,6 @@ def nearest(x, y, k, datatype):
 
         # Store the class vote and prediction
         votes.append(result)
-
         results.append(votes)
 
     return results

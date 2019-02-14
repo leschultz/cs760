@@ -47,8 +47,18 @@ test = json.load(test)
 
 # Standardize both the training and test data if data is numeric
 try:
-    train['data_norm'] = [standardize(i) for i in train['data']]
-    test['data_norm'] = [standardize(i) for i in test['data']]
+    train['data_norm'] = []
+    for i in train['data']:
+        standard = standardize(i[:-1])
+        standard += i[-1]
+        train['data_norm'].append(standard)
+
+    test['data_norm'] = []
+    for i in test['data']:
+        standard = standardize(i[:-1])
+        standard += i[-1]
+        test['data_norm'].append(standard)
+
     datatype = 'numeric'
 
 # Skip standadization if data is categorical

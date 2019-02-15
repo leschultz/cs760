@@ -87,7 +87,7 @@ def nearest(x, y, k, datatype):
 
         # Find the indexes of the smallest k values
         indexes = sorted(range(len(dist)), key=lambda k: dist[k])[:k]
-        matches = np.array(x)[indexes]
+        matches = np.array(x)[indexes]  # This needs to change because of conversion of data types
 
         # Append classes in order
         classes = [i[-1] for i in matches]

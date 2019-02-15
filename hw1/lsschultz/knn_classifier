@@ -50,13 +50,13 @@ try:
     train['data_norm'] = []
     for i in train['data']:
         standard = standardize(i[:-1])
-        standard += i[-1]
+        standard.append(i[-1])
         train['data_norm'].append(standard)
 
     test['data_norm'] = []
     for i in test['data']:
         standard = standardize(i[:-1])
-        standard += i[-1]
+        standard.append(i[-1])
         test['data_norm'].append(standard)
 
     datatype = 'numeric'
@@ -67,7 +67,7 @@ except Exception:
     test['data_norm'] = test['data']
     datatype = 'categorical'
 
-results = nearest(train['data_norm'], test['data_norm'], k, datatype)
+results = nearest(train['data_norm'], test['data_norm'][1:2], k, datatype)
 results = np.array(results)
 
 # Print the data in standard output

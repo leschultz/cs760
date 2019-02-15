@@ -22,7 +22,34 @@ def standardize(x):
     mean = np.mean(x)
     std = np.std(x)
 
+    # In the case that all values are the same
+    if std == 0:
+        std = 1
+
     xnorm = [(i-mean)/std for i in x]
+
+    return xnorm
+
+
+def autonorm(x):
+    '''
+    Standardize the data per column.
+
+    inputs:
+        x = The data to be standardized
+
+    outputs:
+        xnorm = The standardized data
+    '''
+
+    xnorm = np.array(x)[:, :-1]
+    xnorm = np.apply_along_axis(standardize, 0, xnorm)
+    xnorm = [list(i) for i in xnorm]
+
+    count = 0
+    for i in x:
+        xnorm[count].append(i[-1])
+        count += 1
 
     return xnorm
 
@@ -34,6 +61,7 @@ def hamming(x, y):
     inputs:
         x = A training set
         y = A test instance
+
     outputs:
         distance = The distance
     '''
@@ -50,6 +78,7 @@ def manhattan(x, y):
     inputs:
         x = A training set
         y = A test instance
+
     outputs:
         distance = The distance.
     '''
@@ -68,6 +97,7 @@ def knn(x, y, k, datatype):
     inputs:
         x = Training data
         y = Test data
+
     outputs:
         results = Class vote with the predicted value
     '''

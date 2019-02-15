@@ -59,7 +59,7 @@ def manhattan(x, y):
     return distance
 
 
-def nearest(x, y, k, datatype):
+def knn(x, y, k, datatype):
     '''
     Calculate a distance metric for training and give a prediction.
     Manhattan distance for numeric features.
@@ -87,7 +87,7 @@ def nearest(x, y, k, datatype):
 
         # Find the indexes of the smallest k values
         indexes = sorted(range(len(dist)), key=lambda k: dist[k])[:k]
-        matches = np.array(x)[indexes]  # This needs to change because of conversion of data types
+        matches = [x[i] for i in indexes]
 
         # Append classes in order
         classes = [i[-1] for i in matches]

@@ -7,6 +7,28 @@ from collections import Counter
 import numpy as np
 
 
+def datasplitter(x):
+    '''
+    Split data and classes for a dataset.
+
+    inputs:
+        x = The data containing features with the last column being the class
+
+    outputs:
+        data = The feature data
+        class = The class label
+    '''
+
+    array = np.array(x)
+    data = array[:, :-1]
+
+    classes = []
+    for i in x:
+        classes.append(i[-1])
+
+    return data, classes
+
+
 def standardize(x):
     '''
     Use the mean and standard deviation of sample data to standardize
@@ -42,13 +64,20 @@ def autonorm(x):
         xnorm = The standardized data
     '''
 
-    xnorm = np.array(x)[:, :-1]
-    xnorm = np.apply_along_axis(standardize, 0, xnorm)
-    xnorm = [list(i) for i in xnorm]
+    xnorm = x
 
     count = 0
-    for i in x:
-        xnorm[count].append(i[-1])
+    for column in x.T:
+
+        # If the column is numeric
+        try:
+            stand = standardize(column)
+            xnorm[:, count] = stand
+
+        # If the column is categorical
+        except Exception:
+            xnorm[:, count] = x[:, count]
+
         count += 1
 
     return xnorm
@@ -63,12 +92,10 @@ def hamming(x, y):
         y = A test instance
 
     outputs:
-        distance = The distance
+        returns distance
     '''
 
-    distance = sum(i!=j for i, j in zip(x, y))
-
-    return distance
+    return x!=y
 
 
 def manhattan(x, y):
@@ -80,15 +107,13 @@ def manhattan(x, y):
         y = A test instance
 
     outputs:
-        distance = The distance.
+        returns distance.
     '''
 
-    distance = sum(abs(i-j) for i, j in zip(x, y))
-
-    return distance
+    return abs(x-y)
 
 
-def knn(x, y, k, datatype):
+def knn(x, xc, y, k, datatype):
     '''
     Calculate a distance metric for training and give a prediction.
     Manhattan distance for numeric features.
@@ -96,6 +121,7 @@ def knn(x, y, k, datatype):
 
     inputs:
         x = Training data
+        xc = Training classes
         y = Test data
 
     outputs:
@@ -104,30 +130,38 @@ def knn(x, y, k, datatype):
 
     results = []
     for test_instance in y:
-        dist = []
 
         # Compute distances between features
+        dist = []
         for train_instance in x:
-            if datatype == 'categorical':
-                dist.append(hamming(train_instance[:-1], test_instance[:-1]))
 
-            if datatype == 'numeric':
-                dist.append(manhattan(train_instance[:-1], test_instance[:-1]))
+            # Find the distance based on feature type
+            count = 0
+            distance = 0
+            for i, j in zip(test_instance, train_instance):
 
+                # Numerical data type
+                if datatype[count] == 'numeric':
+                    distance += manhattan(i, j)
+
+                # Categorical data type
+                else:
+                    distance += hamming(i, j)
+
+                count += 1
+
+            dist.append(distance)
 
         # Find the indexes of the smallest k values
         indexes = sorted(range(len(dist)), key=lambda k: dist[k])[:k]
-        matches = [x[i] for i in indexes]
-
-        # Append classes in order
-        classes = [i[-1] for i in matches]
+        matches = [xc[i] for i in indexes]
 
         # Create a counter for each matched class
-        counts = Counter(classes)  # Keeps ordered keys
+        counts = Counter(matches)  # Keeps ordered keys
         result = max(counts, key=counts.get)
 
         # The available types of classes
-        classtypes = sorted(set([i[-1] for i in x]))
+        classtypes = sorted(set([i for i in xc]))
 
         # Votes in order
         votes = []

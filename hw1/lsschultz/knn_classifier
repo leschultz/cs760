@@ -47,21 +47,21 @@ test = open(args.test)
 train = json.load(train)
 test = json.load(test)
 
-# Standardize both the training and test data if data is numeric
-try:
-    train['data_norm'] = autonorm(train['data'])
-    test['data_norm'] = autonorm(test['data'])
+train_data, train_classes = datasplitter(train['data'])
+test_data, test_classes = datasplitter(test['data'])
 
-    datatype = 'numeric'
+train_norm = autonorm(train_data)
+test_norm = autonorm(test_data)
 
-# Skip standadization if data is categorical
-except Exception:
-    train['data_norm'] = train['data']
-    test['data_norm'] = test['data']
-    datatype = 'categorical'
+# The data types
+train_types = [i[-1] for i in train['metadata']['features'][:-1]]
+test_types = [i[-1] for i in test['metadata']['features'][:-1]]
+
+if train_types != test_types:
+    print('Inconsistent data types for features')
 
 # Use the k-nearest neighbors alorithm
-results = knn(train['data_norm'], test['data_norm'], k, datatype)
+results = knn(train_norm, train_classes, test_norm, k, train_types)
 results = np.array(results)  # Convert to print on screen
 
 # Print the data in standard output

@@ -43,13 +43,14 @@ train = open(args.train)
 test = open(args.test)
 
 # Load the data in opened files
-# The target feature is the lsat feature named 'label'
 train = json.load(train)
 test = json.load(test)
 
+# The target feature is the lsat feature named 'label'
 train_data, train_classes = datasplitter(train['data'])
 test_data, test_classes = datasplitter(test['data'])
 
+# Normalize the numeric features
 train_norm = autonorm(train_data)
 test_norm = autonorm(test_data)
 
@@ -61,7 +62,7 @@ if train_types != test_types:
     print('Inconsistent data types for features')
 
 # Use the k-nearest neighbors alorithm
-results = knn(train_norm, train_classes, test_norm, k, train_types)
+results = knn(train_norm, train_classes, test_norm[10:11], k, train_types)
 results = np.array(results)  # Convert to print on screen
 
 # Print the data in standard output

@@ -66,21 +66,23 @@ def autonorm(x):
 
     xnorm = x
 
+    columns = []
+
     count = 0
     for column in x.T:
 
         # If the column is numeric
         try:
             stand = standardize(column)
-            xnorm[:, count] = stand
+            columns.append(stand)
 
         # If the column is categorical
         except Exception:
-            xnorm[:, count] = x[:, count]
+            columns.append(list(x[:, count]))
 
         count += 1
 
-    return xnorm
+    return np.array(xnorm)
 
 
 def hamming(x, y):

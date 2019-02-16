@@ -51,8 +51,8 @@ train_data, train_classes = datasplitter(train['data'])
 test_data, test_classes = datasplitter(test['data'])
 
 # Normalize the numeric features
-train_norm = autonorm(train_data)
-test_norm = autonorm(test_data)
+train_norm, mean, std = trainnorm(train_data)
+test_norm = testnorm(test_data, mean, std)
 
 # The data types
 train_types = [i[-1] for i in train['metadata']['features'][:-1]]

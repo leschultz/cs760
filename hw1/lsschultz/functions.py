@@ -39,6 +39,8 @@ def standardize(x):
 
     outputs:
         xnorm = The standardized data
+        mean = The mean of the features
+        std = The standard deviation of the features
     '''
 
     mean = np.mean(x)
@@ -50,10 +52,10 @@ def standardize(x):
 
     xnorm = [(i-mean)/std for i in x]
 
-    return xnorm
+    return xnorm, mean, std
 
 
-def autonorm(x):
+def trainnorm(x):
     '''
     Standardize the data per column.
 
@@ -66,18 +68,65 @@ def autonorm(x):
 
     columns = []
 
+    std = []
+    mean = []
     for column in x.T:
 
         # If the column is numeric
         try:
             stand = standardize(column)
-            columns.append(stand)
+            std.append(stand[2])
+            mean.append(stand[1])
+            columns.append(stand[0])
 
         # If the column is categorical
         except Exception:
+            std.append('NaN')
+            mean.append('NaN')
             columns.append(column)
 
-    return np.array(columns).T
+    return np.array(columns).T, mean, std
+
+
+def testnorm(x, mean, std):
+    '''
+    Standardize the test data per column based on the train data
+    standardization.
+
+    inputs:
+        x = The test data to be standardized
+        mean = The feature means from traning data
+        std = The standard deviation from features of training data
+
+    outputs:
+        xnorm = The standardized test data
+    '''
+
+    count = 0
+    xnorm = []
+    for column in x.T:
+
+        # If the column is numerical
+        try:
+            col = []
+            for item in column:
+                if std[count] == 0:
+                    std[count] = 1
+
+                val = (item-mean[count])/std[count]
+                col.append(val)
+
+            xnorm.append(col)
+
+        # If the column is categorical
+        except Exception:
+            xnorm.append(column)
+
+        count += 1
+
+    xnorm = np.array(xnorm).T
+
+    return xnorm
 
 
 def hamming(x, y):

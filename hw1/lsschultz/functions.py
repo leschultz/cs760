@@ -2,8 +2,6 @@
 This script standardizes the data for machine learning.
 '''
 
-from collections import Counter
-
 import numpy as np
 
 
@@ -222,3 +220,71 @@ def knn(x, xc, y, k, datatype, labels):
         results.append(votes)
 
     return results
+
+
+def tune_knn(
+             train,
+             train_classes,
+             validation,
+             validation_classes,
+             kmax,
+             types,
+             labels
+             ):
+    '''
+    Tune kNN for hyperparameters.
+
+    inputs:
+        train = Training data
+        train_classes = The classes from the training data
+        validation = The validation data
+        validation_classes = The classes from the validation data
+        types = The data types for the training data
+        labels = The possible labels for classes
+        kmax = The maximum number of k-nearest neighbors
+
+    outputs:
+        accuracies = The accuracy for each k value used
+    '''
+
+    # The number of validation instances
+    n = len(validation_classes)
+
+    # Convert to array for boolean comparison
+    validation_classes = np.array(validation_classes)
+
+    accuracies = {}
+    for i in range(1, kmax+1):
+
+        # Use the k-nearest neighbors alorithm
+        result = knn(
+                     train,
+                     train_classes,
+                     validation,
+                     i,
+                     types,
+                     labels
+                     )
+
+        result = np.array(result)[:, -1]
+        accuracy = sum(result == validation_classes)/n  # Sum of true values
+
+        accuracies[i] = accuracy
+
+    return accuracies
+
+
+def choose_k(accuracies):
+    '''
+    Choose the k value based on highest accuracy.
+
+    inputs:
+        accuracies = The accuracy for each k value used
+
+    outputs:
+        k = The optimal k value
+    '''
+
+    k = max(accuracies, key=accuracies.get)
+
+    return k

@@ -159,7 +159,7 @@ def manhattan(x, y):
     return abs(x-y)
 
 
-def knn(x, xc, y, k, datatype):
+def knn(x, xc, y, k, datatype, labels):
     '''
     Calculate a distance metric for training and give a prediction.
     Manhattan distance for numeric features.
@@ -200,22 +200,22 @@ def knn(x, xc, y, k, datatype):
 
         # Find the indexes of the smallest k values
         indexes = sorted(range(len(dist)), key=lambda k: dist[k])[:k]
-        matches = [xc[i] for i in indexes]  # Get the closest features
+        matches = [xc[i] for i in sorted(indexes)]  # Get the closest features
 
-        # Create a counter for each matched class
-        counts = Counter(matches)  # Keeps ordered keys
+        # Predict based on order of metadata
+        counts = {i: 0 for i in labels}
+        for item in matches:
+            if item in labels:
+                counts[item] += 1
+
+        # Find the maximum counts with the first key with a majority breaking
+        # the tie
         result = max(counts, key=counts.get)
-
-        # The available types of classes
-        classtypes = sorted(set([i for i in xc]))
 
         # Votes in order
         votes = []
-        for key in classtypes:
-            if key in counts:
-                votes.append(counts[key])  # Append existing votes
-            else:
-                votes.append(0)  # Append zero for non existant votes
+        for key in counts:
+            votes.append(counts[key])
 
         # Store the class vote and prediction
         votes.append(result)

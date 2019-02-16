@@ -46,7 +46,7 @@ test = open(args.test)
 train = json.load(train)
 test = json.load(test)
 
-# The target feature is the lsat feature named 'label'
+# The target feature is the lasat feature named 'label'
 train_data, train_classes = datasplitter(train['data'])
 test_data, test_classes = datasplitter(test['data'])
 
@@ -58,11 +58,26 @@ test_norm = testnorm(test_data, mean, std)
 train_types = [i[-1] for i in train['metadata']['features'][:-1]]
 test_types = [i[-1] for i in test['metadata']['features'][:-1]]
 
+# Available classes
+if train['metadata']['features'][-1] == test['metadata']['features'][-1]:
+    labels = train['metadata']['features'][-1][-1]
+
+else:
+    print('Training and test data sets do not have the same labels')
+
 if train_types != test_types:
     print('Inconsistent data types for features')
 
 # Use the k-nearest neighbors alorithm
-results = knn(train_norm, train_classes, test_norm, k, train_types)
+results = knn(
+              train_norm,
+              train_classes,
+              test_norm,
+              k,
+              train_types,
+              labels
+              )
+
 results = np.array(results)  # Convert to print on screen
 
 # Print the data in standard output

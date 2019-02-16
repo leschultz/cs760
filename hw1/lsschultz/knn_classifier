@@ -62,7 +62,7 @@ if train_types != test_types:
     print('Inconsistent data types for features')
 
 # Use the k-nearest neighbors alorithm
-results = knn(train_norm, train_classes, test_norm[10:11], k, train_types)
+results = knn(train_norm, train_classes, test_norm, k, train_types)
 results = np.array(results)  # Convert to print on screen
 
 # Print the data in standard output

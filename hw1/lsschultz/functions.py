@@ -64,11 +64,8 @@ def autonorm(x):
         xnorm = The standardized data
     '''
 
-    xnorm = x
-
     columns = []
 
-    count = 0
     for column in x.T:
 
         # If the column is numeric
@@ -78,11 +75,9 @@ def autonorm(x):
 
         # If the column is categorical
         except Exception:
-            columns.append(list(x[:, count]))
+            columns.append(column)
 
-        count += 1
-
-    return np.array(xnorm)
+    return np.array(columns).T
 
 
 def hamming(x, y):
@@ -90,8 +85,8 @@ def hamming(x, y):
     Compute the Hamming distance.
 
     inputs:
-        x = A training set
-        y = A test instance
+        x = A training value
+        y = A test value
 
     outputs:
         returns distance
@@ -105,8 +100,8 @@ def manhattan(x, y):
     Compute the Manhattan distance.
 
     inputs:
-        x = A training set
-        y = A test instance
+        x = A training value
+        y = A test value
 
     outputs:
         returns distance.
@@ -156,7 +151,7 @@ def knn(x, xc, y, k, datatype):
 
         # Find the indexes of the smallest k values
         indexes = sorted(range(len(dist)), key=lambda k: dist[k])[:k]
-        matches = [xc[i] for i in indexes]
+        matches = [xc[i] for i in indexes]  # Get the closest features
 
         # Create a counter for each matched class
         counts = Counter(matches)  # Keeps ordered keys
@@ -169,9 +164,9 @@ def knn(x, xc, y, k, datatype):
         votes = []
         for key in classtypes:
             if key in counts:
-                votes.append(counts[key])
+                votes.append(counts[key])  # Append existing votes
             else:
-                votes.append(0)
+                votes.append(0)  # Append zero for non existant votes
 
         # Store the class vote and prediction
         votes.append(result)

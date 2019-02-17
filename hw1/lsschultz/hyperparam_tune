@@ -86,9 +86,33 @@ accuracies = tune_knn(
 # The optimal k value
 k = choose_k(accuracies)
 
+merged_norm = np.concatenate((
+                              np.array(train_norm),
+                              np.array(validation_norm))
+                             )
+
+merged_classes = np.concatenate((
+                                 np.array(train_classes),
+                                 np.array(validation_classes))
+                                )
+
+# Use the k-nearest neighbors alorithm
+results = knn(
+              merged_norm,
+              merged_classes,
+              test_norm,
+              k,
+              train_types,
+              labels
+              )
+
+predicted = np.array(results)[:, -1]
+accuracy = prediction_accuracy(predicted, test_classes)
+
 results = []
 for key in accuracies:
     print(str(key)+','+str(accuracies[key]), file=sys.stdout)
 
 # Print the data in standard output
 print(k, file=sys.stdout)
+print(accuracy, file=sys.stdout)

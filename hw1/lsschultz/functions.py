@@ -157,6 +157,24 @@ def manhattan(x, y):
     return abs(x-y)
 
 
+def prediction_accuracy(x, y):
+    '''
+    Compute the accuracy of predictions.
+
+    inputs:
+        x = Predicted values
+        y = Actual values
+
+    outputs:
+        accuracy = The accuracy of predictions
+    '''
+
+    n = len(x)  # Determine length from the predicted values
+    accuracy = sum(x==y)/n  # The sum of true values
+
+    return accuracy
+
+
 def knn(x, xc, y, k, datatype, labels):
     '''
     Calculate a distance metric for training and give a prediction.
@@ -267,7 +285,9 @@ def tune_knn(
                      )
 
         result = np.array(result)[:, -1]
-        accuracy = sum(result == validation_classes)/n  # Sum of true values
+
+        # Compute the accuracy of predictions
+        accuracy = prediction_accuracy(result, validation_classes)
 
         accuracies[i] = accuracy
 

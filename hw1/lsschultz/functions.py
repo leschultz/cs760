@@ -157,40 +157,20 @@ def manhattan(x, y):
     return abs(x-y)
 
 
-def prediction_accuracy(x, y):
+def calculate_distances(x, y, datatype):
     '''
-    Compute the accuracy of predictions.
+    Compute the distances betwen training and test sets.
 
     inputs:
-        x = Predicted values
-        y = Actual values
-
+        x = The training set
+        y = The test set
+        datatype = The feature data type values
+        
     outputs:
-        accuracy = The accuracy of predictions
+        distances = The distances between training and test sets
     '''
 
-    n = len(x)  # Determine length from the predicted values
-    accuracy = sum(x==y)/n  # The sum of true values
-
-    return accuracy
-
-
-def knn(x, xc, y, k, datatype, labels):
-    '''
-    Calculate a distance metric for training and give a prediction.
-    Manhattan distance for numeric features.
-    Hamming distance for categorical features.
-
-    inputs:
-        x = Training data
-        xc = Training classes
-        y = Test data
-
-    outputs:
-        results = Class vote with the predicted value
-    '''
-
-    results = []
+    distances = []
     for test_instance in y:
 
         # Compute distances between features
@@ -213,6 +193,47 @@ def knn(x, xc, y, k, datatype, labels):
                 count += 1
 
             dist.append(distance)
+
+        distances.append(dist)
+
+    return distances
+
+
+def prediction_accuracy(x, y):
+    '''
+    Compute the accuracy of predictions.
+
+    inputs:
+        x = Predicted values
+        y = Actual values
+
+    outputs:
+        accuracy = The accuracy of predictions
+    '''
+
+    n = len(x)  # Determine length from the predicted values
+    accuracy = sum(x==y)/n  # The sum of true values
+
+    return accuracy
+
+
+def knn(xc, distances, k, labels):
+    '''
+    Calculate a distance metric for training and give a prediction.
+    Manhattan distance for numeric features.
+    Hamming distance for categorical features.
+
+    inputs:
+        x = Training data
+        xc = Training classes
+        y = Test data
+
+    outputs:
+        results = Class vote with the predicted value
+    '''
+
+    results = []
+    for dist in distances:
 
         # Find the indexes of the smallest k values
         indexes = sorted(range(len(dist)), key=lambda k: dist[k])[:k]
@@ -241,23 +262,18 @@ def knn(x, xc, y, k, datatype, labels):
 
 
 def tune_knn(
-             train,
              train_classes,
-             validation,
              validation_classes,
+             distances,
              kmax,
-             types,
              labels
              ):
     '''
     Tune kNN for hyperparameters.
 
     inputs:
-        train = Training data
         train_classes = The classes from the training data
-        validation = The validation data
         validation_classes = The classes from the validation data
-        types = The data types for the training data
         labels = The possible labels for classes
         kmax = The maximum number of k-nearest neighbors
 
@@ -276,12 +292,10 @@ def tune_knn(
 
         # Use the k-nearest neighbors alorithm
         result = knn(
-                     train,
                      train_classes,
-                     validation,
+                     distances,
                      i,
-                     types,
-                     labels
+                     labels,
                      )
 
         result = np.array(result)[:, -1]

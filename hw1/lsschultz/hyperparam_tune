@@ -62,7 +62,6 @@ test_data, test_classes = datasplitter(test['data'])
 # Normalize the numeric features
 train_norm, mean, std = trainnorm(train_data)
 validation_norm = testnorm(validation_data, mean, std)
-test_norm = testnorm(test_data, mean, std)
 
 # The data types
 train_types = [i[-1] for i in train['metadata']['features'][:-1]]
@@ -87,15 +86,20 @@ accuracies = tune_knn(
 # The optimal k value
 k = choose_k(accuracies)
 
-merged_norm = np.concatenate((
-                              np.array(train_norm),
-                              np.array(validation_norm))
-                             )
+# Combine training and validation sets
+merged = np.concatenate((
+                         np.array(train_data),
+                         np.array(validation_data)
+                         ))
+
+# Standardize data
+merged_norm, mean, std = trainnorm(merged)  
+test_norm = testnorm(test_data, mean, std)
 
 merged_classes = np.concatenate((
                                  np.array(train_classes),
-                                 np.array(validation_classes))
-                                )
+                                 np.array(validation_classes)
+                                 ))
 
 # Compute the feature distances
 distances = calculate_distances(merged_norm, test_norm, train_types)

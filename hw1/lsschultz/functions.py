@@ -199,6 +199,100 @@ def calculate_distances(x, y, datatype):
     return distances
 
 
+def conficence(distances, xc, predictions, k, positive, epsilon):
+    '''
+    Compute the confidence values.
+
+    inputs:
+        distances = The distances between training and test features
+        xc = The training classes
+        predictions = The predicted classes
+        k = The number of nearest neighbors
+        positive = The positive class
+        epsilon = A parameter for avoiding issues when test and train sets are
+                  equal
+
+    outputs:
+        confidences = The probability P(y=1|x)
+    '''
+
+    confidences = []
+    for dist in distances:        
+
+        # Find the indexes of the smallest k values
+        indexes = sorted(range(len(dist)), key=lambda k: dist[k])[:k]
+
+        # Get the closest training sets
+        matches_classes = [xc[i] for i in sorted(indexes)]
+        matches_dists = [dist[i] for i in sorted(indexes)]
+
+        # Compute the weights
+        weights = [1/(i**2+epsilon) for i in matches_dists]
+
+        # Compute the conficence values
+        num = sum([(i==positive)*j for i, j in zip(matches_classes, weights)])
+        den = sum(weights)
+
+        p = num/den
+        confidences.append(p)
+
+    return confidences
+
+
+def roc(yc, confidences, positive):
+    '''
+    Generate the data for ROC.
+
+    inputs:
+        confidences = The confidence values
+        yc = The true classes for the test set
+        positive = The positive class
+
+    outputs:
+        coordinates = The (FPR, TPR) coordinates
+    '''
+
+    # Sort the data based on predicted confidence
+    rocdata = [(i, j) for i, j in zip (confidences, yc)]
+    rocdata = sorted(rocdata, reverse=True)
+
+    length = len(rocdata)
+
+    # The number of negative/positve instances in the test set
+    num_neg = sum((i!=positive) for i in yc)
+    num_pos = length-num_neg
+
+    tp = 0
+    fp = 0
+    last_tp = 0
+    coordinates = []  # The FPR and TPR coordinates (FPR, TPR)
+    for i in range(1, length):
+        condition = (i > 1)
+        condition = condition and (rocdata[i][0]!=rocdata[i-1][0])       
+        condition = condition and (rocdata[i][1]!=positive)
+        condition = condition and (tp>last_tp)       
+
+        if condition:
+            fpr = fp/num_neg
+            tpr = tp/num_pos
+            last_tp = tp
+
+            coordinates.append((fpr, tpr))
+
+        if rocdata[i][1] == positive:
+            tp += 1
+
+        else:
+            fp += 1
+
+    fpr = fp/num_neg
+    tpr = tp/num_pos
+
+    coordinates.append((fpr, tpr))
+
+    return coordinates
+
+
 def prediction_accuracy(x, y):
     '''
     Compute the accuracy of predictions.

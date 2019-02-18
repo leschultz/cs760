@@ -1,1 +1,95 @@
-#!/usr/bin/env/ python3.6
+#!/usr/bin/env python3.6
+
+from functions import *
+
+import numpy as np
+
+import argparse
+import json
+import sys
+
+parserdescription = 'Arguments for k, training set, and test set'
+
+parser = argparse.ArgumentParser(
+                                 description=parserdescription
+                                 )
+
+parser.add_argument(
+                    'k',
+                    type=int,
+                    help='k parameter'
+                    )
+
+parser.add_argument(
+                    'train',
+                    type=str,
+                    help='Path to training set'
+                    )
+
+parser.add_argument(
+                    'test',
+                    type=str,
+                    help='Path to test set'
+                    )
+
+args = parser.parse_args()
+
+
+# Then number of k-nearest neighbors
+k = args.k
+
+# Open the training and test data
+train = open(args.train)
+test = open(args.test)
+
+# Load the data in opened files
+train = json.load(train)
+test = json.load(test)
+
+# The target feature is the lasat feature named 'label'
+train_data, train_classes = datasplitter(train['data'])
+test_data, test_classes = datasplitter(test['data'])
+
+# The data types
+train_types = [i[-1] for i in train['metadata']['features'][:-1]]
+test_types = [i[-1] for i in test['metadata']['features'][:-1]]
+
+# The available class labels
+labels = train['metadata']['features'][-1][-1]
+
+# The positive class
+pos = labels[0]  # The first value
+
+# Epsilon value give in problem statement
+epsilon = 1*10**-5
+
+# Normalize the numeric features
+train_norm, mean, std = trainnorm(train_data)
+test_norm = testnorm(test_data, mean, std)
+
+# Compute the feature distances
+distances = calculate_distances(
+                                train_norm,
+                                test_norm,
+                                train_types
+                                )
+
+# Use the k-nearest neighbors alorithm
+results = knn(
+              train_classes,
+              distances,
+              k,
+              labels
+              )
+
+results = np.array(results)
+predictions = results[:, -1]
+
+# Get data needed for ROC
+p = conficence(distances, train_classes, predictions, k, pos, epsilon)
+coord = roc(test_classes, p, pos)  # The coordinates
+
+# Print the data in standard output
+for item in coord:
+    out = ','.join(map(str, item))
+    print(out, file=sys.stdout)

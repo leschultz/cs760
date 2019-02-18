@@ -266,7 +266,10 @@ def roc(yc, confidences, positive):
     fp = 0
     last_tp = 0
     coordinates = []  # The FPR and TPR coordinates (FPR, TPR)
-    for i in range(1, length):
+    for i in range(length):
+
+        # List of conditions to find the thresholds where there is a positive
+        # on the high side and a negative instance on the low side
         condition = (i > 1)
         condition = condition and (rocdata[i][0]!=rocdata[i-1][0])       
         condition = condition and (rocdata[i][1]!=positive)
@@ -274,7 +277,7 @@ def roc(yc, confidences, positive):
 
         if condition:
             fpr = fp/num_neg
-            tpr = tp/num_pos
+            tpr = (tp)/num_pos
             last_tp = tp
 
             coordinates.append((fpr, tpr))

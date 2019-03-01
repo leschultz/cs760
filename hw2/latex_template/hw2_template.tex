@@ -1,0 +1,103 @@
+% To produce pdf under linux, run
+% pdflatex hw2.tex
+
+% Credit for this template goes to Dr. Jerry Zhu.
+
+\documentclass{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{bbm}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{outlines}
+\usepackage{enumitem}
+\usepackage{float}
+\usepackage{xcolor}
+\usepackage{parskip}
+\usepackage[skip=0.5\baselineskip]{caption}
+
+\def\bfx{\mathbf x}
+\def\R{\mathbb R}
+\def\E{\mathbb E}
+\def\argmax{\mathrm{argmax}}
+\def\argmin{\mathrm{argmin}}
+
+
+\newenvironment{soln}{
+	\leavevmode\color{red}\ignorespaces
+}{}
+
+
+
+\title{CS760 Spring 2019 Homework 2}
+\author{Due Mar 7 at 11:59pm}
+\date{}
+\begin{document}
+\maketitle
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Insert your name and email here:
+
+Name: Lane Schultz 
+
+Email: lsschultz@wisc.edu
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\section*{Written Problems}
+
+\textbf{NOTE:} For the following written problems, put your answer in \texttt{hw2.pdf}. You are required to provide detailed solutions including the intermediate results for each step. Otherwise, you will not get full credit. You can also add figures or tables whenever necessary. If your solutions are handwritten, make sure they are legible.
+
+\begin{enumerate}
+\item (8 pts) Suppose you have a Bayesian network with 6 binary random variables shown as follows, where \emph{t} and \emph{f} stand for \emph{true} and \emph{false} respectively.
+
+Compute the probability: $P(d | b, \neg a, j, m)$.
+
+\begin{figure}[h]
+\centering
+\includegraphics[scale=0.5]{p1}
+\label{fig:q1}
+\end{figure}
+
+
+\pagebreak
+
+
+\item Given the following Bayesian network and sample counts in each table, where sample counts \texttt{<n\textsubscript{true}, n\textsubscript{false}>}, there are \texttt{n\textsubscript{true}} samples with true labels and \texttt{n\textsubscript{false}} samples with false labels for this attribute. For example, \texttt{<138, 132>} in table \texttt{C|A} says given the condition of $A = true$, there are 138 instances are true and 132 are false with regard to attribute $C$.
+
+You need to answer the following two questions.
+
+
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.5]{p2}
+\label{fig:q2}
+\end{figure}
+
+
+\begin{enumerate}
+\item (2 pts) Construct the conditional probability tables (CPTs) based on the above sample count tables, using maximum likelihood estimation. You need to both show the true probability \texttt{P\textsubscript{true}} and false probability P\textsubscript{false} for each case, and organize them in the format of \texttt{<P\textsubscript{true}, P\textsubscript{false}>}. For example, for the case \texttt{Y|X\textsubscript{1},X\textsubscript{2}}, your answer will look like \texttt{<P(Y|X\textsubscript{1},X\textsubscript{2}), P($\neg$Y|X\textsubscript{1},X\textsubscript{2})>}. Keep \textbf{at least 3 digits of precision.} (You may reuse the same structure as the above tables, just plugging in the conditional probabilities in the place of sample counts. For more information, please refer to the lecture notes \texttt{BNs-1.pdf})
+
+
+
+\vspace{10pt}
+
+\item (10 pts) Show the result of one cycle of the EM algorithm to update the CPTs you derived in step (a), using 10 another instances with \texttt{A=true}, \texttt{B=false}, \texttt{C=?}, and \texttt{D=true} (`?' means missing value). Keep \textbf{at least 2 digits of precision}.
+
+
+
+\end{enumerate}
+\end{enumerate}
+
+\pagebreak
+
+\section*{Problem 1 Solution}
+
+\section*{Problem 2 Solution}
+\subsection*{Part a}
+
+\subsection*{Part b}
+
+\end{document}

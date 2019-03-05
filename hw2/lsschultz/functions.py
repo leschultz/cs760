@@ -102,29 +102,48 @@ def naive_bayes(dftrain, dftest, labels):
     outputs:
     '''
 
+    # Arbitrary assignment of positive and negative binary classes
     positive = labels[0]
+    negative = labels[1]
 
-    # Determine P(Y=y)
-    yprob = sum(dftrain[dftrain.columns[-1]] == positive)
-    yprob /= len(dftrain)+1
+    df = pd.concat([dftrain, dftest])
+
+    # Determine P(Y=y). This is computing the prior probability.
+    ycounts = dftrain.groupby(dftrain.columns[-1])[dftrain.columns[-1]].count()
+
+    total = sum([ycounts[positive], ycounts[negative]])  # Total number
+    yprob = ycounts/total  # The probabilites for each class
+
+    yprob_pos = yprob[positive]  # Positive posterior probability
+    yprob_neg = yprob[negative]  # Negative posterior probability
 
     # Determine P(X_i=x|Y=y) and P(X_i=x|Y!=y) for each value of X_i
-    dfXprob = []
+    dfprobgiven = []
     for col in dftrain.columns[:-1]:
-        Xprob = dftrain.groupby(dftrain.columns[-1])[col].value_counts()+1
-        Xprob /= dftrain.groupby(dftrain.columns[-1])[col].count()+1
+        probgiven = dftrain.groupby(dftrain.columns[-1])[col].value_counts()
+        probgiven /= ycounts  # Maybe the denominator depends on the meregd data instead look at the slides
 
-        dfXprob.append(Xprob)
+        dfprobgiven.append(probgiven)
 
-    dfXprob = pd.DataFrame(dfXprob).transpose()
+    dfprobgiven = pd.DataFrame(dfprobgiven).transpose()
 
-    dfpred = {}
+    dfpos = {}
+    dfneg = {}
     for col in dftest.columns[:-1]:
-        dfpred[col] = dftest[col].replace(dfXprob[col][positive])
+        dfpos[col] = dftest[col].replace(dfprobgiven[col][positive])
+        dfneg[col] = dftest[col].replace(dfprobgiven[col][negative])
 
-    dfpred = pd.DataFrame(dfpred)
-    result = np.prod(dfpred, axis=1)*yprob
-    print(result, yprob)
+    dfpos = pd.DataFrame(dfpos)
+    dfneg = pd.DataFrame(dfneg)
+
+    posprod = np.prod(dfpos, axis=1)
+    negprod = np.prod(dfneg, axis=1)
+
+    numerator = posprod*yprob_pos
+    denominator = yprob_pos*posprod+yprob_neg*negprod
+
+    probabilities = numerator/denominator
+    print(probabilities)
 
 
 def conditional_mutual_information(X, y):

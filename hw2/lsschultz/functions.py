@@ -78,6 +78,11 @@ def naive_bayes(X_train, y_train, X_test, y_test, meta):
     classes = meta[-1][-1]  # The available classes
     nclasses = len(classes)  # The number of classes
 
+    # The tree used for probabilities
+    head = meta[-1][0]
+    nodes = [i[0] for i in meta[:-1]]
+    structure = [(i, head) for i in nodes]
+
     # Compute prior counts for target
     priorcounts = np.unique(y_train, return_counts=True)
     priorcounts = dict(zip(priorcounts[0], priorcounts[1]))
@@ -174,10 +179,16 @@ def naive_bayes(X_train, y_train, X_test, y_test, meta):
                 choice[k] = classes[item+1]
             k += 1
 
+    # The number of correct predictions
+    ncorrect = np.sum(choice == y_test)
+    print(ncorrect)
+
     results = {
+               'tree': structure,
                'probabilities': maxprobs,
                'predictions': choice,
-                'actual': y_test
+               'actual': y_test,
+               'ncorrect': ncorrect
                }
 
     return results
@@ -188,15 +199,31 @@ def print_info(results):
     Print the data to a file.
     '''
 
+    # Print the structe of the bayes net
+    for i in results['tree']:
+        out = ' '.join(map(str, (i)))
+        print(out, file=sys.stdout)
+
+    print(file=sys.stdout)
+
     # Print the data in standard output
     section = zip(
                   results['predictions'],
                   results['actual'],
                   results['probabilities']
                   )
+
     for i, j, k in section:
         out = ' '.join(map(str, (i, j, k)))
         print(out, file=sys.stdout)
+
+    print(file=sys.stdout)
+
+    # Print the number of correct matches
+    print(results['ncorrect'], file=sys.stdout)
+
+    print(file=sys.stdout)
+    
 
 
 def conditional_mutual_information(X, y):

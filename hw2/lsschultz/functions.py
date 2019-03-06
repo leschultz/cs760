@@ -2,24 +2,26 @@
 This script standardizes the data for machine learning.
 '''
 
-import pandas as pd
 import numpy as np
 
 import json
+import sys
 
 
 def load(train, test):
     '''
-    Load a train and test data set and export them as data frames.
+    Load a train and test data set and export them.
 
     inputs:
         train = The path to the training set
         test = The path to the testing set
 
     outputs:
-        dftrain = The training data frame
-        dftest = The testing data frame
-        labels = The possible classes for the target feature
+        X_train = The training features
+        y_train = The training target feature
+        X_test = The test features
+        y_test = The test target feature
+        meta = The meta data
     '''
 
     # Open the training and test data
@@ -34,25 +36,10 @@ def load(train, test):
     X_train, y_train = datasplitter(train['data'])
     X_test, y_test = datasplitter(test['data'])
 
-    # The data types
-    features_train = [i[0] for i in train['metadata']['features'][:-1]]
-    features_test = [i[0] for i in test['metadata']['features'][:-1]]
-
-    # The feature types
-    target_train = train['metadata']['features'][-1][0]
-    target_test = test['metadata']['features'][-1][0]
-
     # The metadata
     meta = train['metadata']['features']
 
-    # Data Frames
-    dftrain = pd.DataFrame(X_train, columns=features_train)
-    dftrain[target_train] = y_train
-
-    dftest = pd.DataFrame(X_test, columns=features_test)
-    dftest[target_test] = y_test
-
-    return dftrain, dftest, meta
+    return X_train, y_train, X_test, y_test, meta
 
 
 def datasplitter(x):
@@ -64,17 +51,17 @@ def datasplitter(x):
 
     outputs:
         data = The feature data
-        class = The target data
+        target = The target data
     '''
 
     array = np.array(x)
     data = array[:, :-1]
-    targets = np.array([i[-1] for i in x])
+    target = np.array([i[-1] for i in x])
 
-    return data, targets
+    return data, target
 
 
-def naive_bayes(dftrain, dftest, meta):
+def naive_bayes(X_train, y_train, X_test, y_test, meta):
     '''
     Calculate probabilities based on Bayes' Rule. This uses the
     Laplace estimate. Binary classification only.
@@ -85,17 +72,14 @@ def naive_bayes(dftrain, dftest, meta):
     outputs:
     '''
 
-    train = np.array(dftrain)  # Train data
-    test = np.array(dftest)  # Test data
-
-    n = len(train)  # The number of prior entries
+    n = len(y_train)  # The number of prior entries
 
     types = [i[-1] for i in meta]  # The types of features
     classes = meta[-1][-1]  # The available classes
     nclasses = len(classes)  # The number of classes
 
     # Compute prior counts for target
-    priorcounts = np.unique(train[:, -1], return_counts=True)
+    priorcounts = np.unique(y_train, return_counts=True)
     priorcounts = dict(zip(priorcounts[0], priorcounts[1]))
 
     # Check to make sure all possible classes are counted
@@ -106,7 +90,7 @@ def naive_bayes(dftrain, dftest, meta):
     # Devide the training data based on the training feature
     classdivisions = {}
     for item in classes:
-        division = train[np.where(train==item)[0]][:, :-1]
+        division = X_train[np.where(y_train==item)[0]]
         classdivisions[item] = division
 
     # Calculate the counts for each column
@@ -149,8 +133,8 @@ def naive_bayes(dftrain, dftest, meta):
     for item in classes:
 
         i = 0
-        testprobs[item] = np.copy(test[:, :-1])
-        for col in test[:, :-1].transpose():
+        testprobs[item] = np.zeros(X_test.shape)
+        for col in X_test.transpose():
 
             j = 0
             for element in col:
@@ -166,12 +150,53 @@ def naive_bayes(dftrain, dftest, meta):
         rowprods[item] = np.prod(testprobs[item], axis=1)
 
     # For every row multiply the prior probability for each class (binary)
-    numerator = priorprobs[classes[0]]*rowprods[classes[0]]
-    denominator = priorprobs[classes[0]]*rowprods[classes[0]]
-    denominator += priorprobs[classes[1]]*rowprods[classes[1]]
-    probabilities = numerator/denominator
+    probabilities = {}
+    for item in classes:
+        numerator = priorprobs[item]*rowprods[item]
+        denominator = priorprobs[classes[0]]*rowprods[classes[0]]
 
-    print(probabilities)
+        denominator = 0
+        for key in classes:
+            denominator += priorprobs[key]*rowprods[key]
+
+        probabilities[item] = numerator/denominator
+
+
+    # Choose by the maximum probability
+    maxprobs = probabilities[classes[0]]  # Initial probabilities
+    choice = [classes[0] for i in maxprobs]  # Initial choices
+    for item in range(len(classes[1:])):
+
+        k = 0
+        for i, j in zip(maxprobs, probabilities[classes[item+1]]):
+            if j > i:
+                maxprobs[k] = j
+                choice[k] = classes[item+1]
+            k += 1
+
+    results = {
+               'probabilities': maxprobs,
+               'predictions': choice,
+                'actual': y_test
+               }
+
+    return results
+
+
+def print_info(results):
+    '''
+    Print the data to a file.
+    '''
+
+    # Print the data in standard output
+    section = zip(
+                  results['predictions'],
+                  results['actual'],
+                  results['probabilities']
+                  )
+    for i, j, k in section:
+        out = ' '.join(map(str, (i, j, k)))
+        print(out, file=sys.stdout)
 
 
 def conditional_mutual_information(X, y):

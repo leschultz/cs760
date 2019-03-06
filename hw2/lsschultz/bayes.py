@@ -3,7 +3,6 @@
 from functions import *
 
 import argparse
-import sys
 
 parserdescription = 'Arguments for k, training set, and test set'
 
@@ -35,17 +34,10 @@ args = parser.parse_args()
 # The option for Naive Bayes or TAN
 nt = args.nt
 
-
 # Load the training and testing data
-dftrain, dftest, meta = load(args.train, args.test)
+X_train, y_train, X_test, y_test, meta = load(args.train, args.test)
 
 
 if nt == 'n':
-    naive_bayes(dftrain, dftest, meta)
-
-'''
-# Print the data in standard output
-for item in results:
-    out = ','.join(map(str, item))
-    print(out, file=sys.stdout)
-'''
+    probabilities = naive_bayes(X_train, y_train, X_test, y_test, meta)
+    print_info(probabilities)

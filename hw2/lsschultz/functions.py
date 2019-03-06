@@ -42,8 +42,8 @@ def load(train, test):
     target_train = train['metadata']['features'][-1][0]
     target_test = test['metadata']['features'][-1][0]
 
-    # The possible classes for targets
-    labels = train['metadata']['features'][-1][-1]
+    # The metadata
+    meta = train['metadata']['features']
 
     # Data Frames
     dftrain = pd.DataFrame(X_train, columns=features_train)
@@ -52,7 +52,7 @@ def load(train, test):
     dftest = pd.DataFrame(X_test, columns=features_test)
     dftest[target_test] = y_test
 
-    return dftrain, dftest, labels
+    return dftrain, dftest, meta
 
 
 def datasplitter(x):
@@ -74,24 +74,7 @@ def datasplitter(x):
     return data, targets
 
 
-def naive_p(px, py):
-    '''
-    Compute a naive probability.
-
-    inputs:
-        px = P(X|y)
-        py = P(y)
-
-    outputs:
-        probability = P(y|x)
-    '''
-
-    probability = np.prod(px)*py
-
-    return probability
-
-
-def naive_bayes(dftrain, dftest, labels):
+def naive_bayes(dftrain, dftest, meta):
     '''
     Calculate probabilities based on Bayes' Rule. This uses the
     Laplace estimate. Binary classification only.
@@ -102,59 +85,41 @@ def naive_bayes(dftrain, dftest, labels):
     outputs:
     '''
 
-    # Arbitrary assignment of positive and negative binary classes
-    positive = labels[0]
-    negative = labels[1]
+    train = np.array(dftrain)
+    test = np.array(dftest)
 
-    df = pd.concat([dftrain, dftest])
+    n = len(train)  # The number of prior entries
 
-    # Determine P(Y=y). This is computing the prior probability.
-    ycounts = dftrain.groupby(dftrain.columns[-1])[dftrain.columns[-1]].count()
+    # Compute prior probabilities
+    prior = np.unique(train[:, -1], return_counts=True)
+    prior = dict(zip(prior[0], prior[1]))
 
-    probs = []
-    counts = []
-    for col in dftrain.columns[:-1]:
-        count = dftrain[col].value_counts()+1  # Added for laplace estimate
-        total = sum([i+1 for i in count])  # Added for laplace estimate
-        px = count/total
-        probs.append(px)
-        counts.append(count)
+    classes = meta[-1][-1]  # The number of available classes
 
-    probs = pd.DataFrame(probs).transpose()
-    featurecounts = pd.DataFrame(counts).transpose()
+    # Devide the training data based on the training feature
+    classdivisions = {}
+    for item in classes:
+        division = train[np.where(train==item)[0]]
+        classdivisions[item] = division
 
-    total = sum([ycounts[positive], ycounts[negative]])  # Total number
-    yprob = ycounts/total  # The probabilites for each class
+    # Calculate the counts for each column
+    featurecounts = {}
+    for key, value in classdivisions.items():
+        featurecounts[key] = []
+        for col in value.T:
+            count = np.unique(col, return_counts=True)
+            count = dict(zip(count[0], count[1]))
+            featurecounts[key].append(count)
 
-    yprob_pos = yprob[positive]  # Positive posterior probability
-    yprob_neg = yprob[negative]  # Negative posterior probability
+    print(featurecounts)
 
-    # Determine P(X_i=x|Y=y) and P(X_i=x|Y!=y) for each value of X_i
-    dfcounts = []
-    for col in dftrain.columns[:-1]:
-        counts = dftrain.groupby(dftrain.columns[-1])[col].value_counts()
-        counts /= ycounts#sum([i+1 for i in featurecounts[col]])
-        dfcounts.append(counts)
+    # The prior probabilities for each class
+    priorprobs = {}
+    for key, value in prior.items():
+        priorprobs[key] = value/n
 
-    dfcounts = pd.DataFrame(dfcounts).transpose()
-
-    dfpos = {}
-    dfneg = {}
-    for col in dftest.columns[:-1]:
-        dfpos[col] = dftest[col].replace(dfcounts[col][positive])
-        dfneg[col] = dftest[col].replace(dfcounts[col][negative])
-
-    dfpos = pd.DataFrame(dfpos)
-    dfneg = pd.DataFrame(dfneg)
-
-    posprod = np.prod(dfpos, axis=1)
-    negprod = np.prod(dfneg, axis=1)
-
-    numerator = posprod*yprob_pos
-    denominator = yprob_pos*posprod+yprob_neg*negprod
-
-    probabilities = numerator/denominator
-    print(probabilities)
+    types = [i[-1] for i in meta]  # The types of features
+    counts = [len(i) for i in types]
 
 
 def conditional_mutual_information(X, y):

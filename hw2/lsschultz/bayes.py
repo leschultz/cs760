@@ -37,11 +37,11 @@ nt = args.nt
 
 
 # Load the training and testing data
-dftrain, dftest, labels = load(args.train, args.test)
+dftrain, dftest, meta = load(args.train, args.test)
 
 
 if nt == 'n':
-    naive_bayes(dftrain, dftest, labels)
+    naive_bayes(dftrain, dftest, meta)
 
 '''
 # Print the data in standard output

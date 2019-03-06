@@ -85,16 +85,20 @@ def naive_bayes(dftrain, dftest, meta):
     outputs:
     '''
 
-    train = np.array(dftrain)
-    test = np.array(dftest)
+    train = np.array(dftrain)  # Train data
+    test = np.array(dftest)  # Test data
+    classes = meta[-1][-1]  # The number of available classes
 
     n = len(train)  # The number of prior entries
 
-    # Compute prior probabilities
-    prior = np.unique(train[:, -1], return_counts=True)
-    prior = dict(zip(prior[0], prior[1]))
+    types = [i[-1] for i in meta]  # The types of features
 
-    classes = meta[-1][-1]  # The number of available classes
+    # Create dictionary to keep track of column feature counts
+    counts = [{j: 0 for j in i} for i in types]
+
+    # Compute prior counts for target
+    priorcounts = np.unique(train[:, -1], return_counts=True)
+    priorcounts = dict(zip(priorcounts[0], priorcounts[1]))
 
     # Devide the training data based on the training feature
     classdivisions = {}
@@ -105,18 +109,33 @@ def naive_bayes(dftrain, dftest, meta):
     # Calculate the counts for each column
     featurecounts = {}
     for key, value in classdivisions.items():
+
+        i = 0
         featurecounts[key] = []
         for col in value.T:
+            print(types[i])
             count = np.unique(col, return_counts=True)
+            print(count)
             count = dict(zip(count[0], count[1]))
             featurecounts[key].append(count)
-
-    print(featurecounts)
+            i += 1
 
     # The prior probabilities for each class
     priorprobs = {}
-    for key, value in prior.items():
+    for key, value in priorcounts.items():
         priorprobs[key] = value/n
+
+    # Compute the probabilities on prior features for P(x|y)
+    featureprobs = {}
+    for key, value in featurecounts.items():
+        featureprobs[key] = []
+        for col in value:
+            probs = {}
+            for i in col:
+                probs[i] = col[i]/(priorcounts[key]+col[i])
+            featureprobs[key].append(probs)
+
+    # Apply the probabilities on the test instances
 
     types = [i[-1] for i in meta]  # The types of features
     counts = [len(i) for i in types]

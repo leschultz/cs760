@@ -111,6 +111,18 @@ def naive_bayes(dftrain, dftest, labels):
     # Determine P(Y=y). This is computing the prior probability.
     ycounts = dftrain.groupby(dftrain.columns[-1])[dftrain.columns[-1]].count()
 
+    probs = []
+    counts = []
+    for col in dftrain.columns[:-1]:
+        count = dftrain[col].value_counts()+1  # Added for laplace estimate
+        total = sum([i+1 for i in count])  # Added for laplace estimate
+        px = count/total
+        probs.append(px)
+        counts.append(count)
+
+    probs = pd.DataFrame(probs).transpose()
+    featurecounts = pd.DataFrame(counts).transpose()
+
     total = sum([ycounts[positive], ycounts[negative]])  # Total number
     yprob = ycounts/total  # The probabilites for each class
 
@@ -118,20 +130,19 @@ def naive_bayes(dftrain, dftest, labels):
     yprob_neg = yprob[negative]  # Negative posterior probability
 
     # Determine P(X_i=x|Y=y) and P(X_i=x|Y!=y) for each value of X_i
-    dfprobgiven = []
+    dfcounts = []
     for col in dftrain.columns[:-1]:
-        probgiven = dftrain.groupby(dftrain.columns[-1])[col].value_counts()
-        probgiven /= ycounts  # Maybe the denominator depends on the meregd data instead look at the slides
+        counts = dftrain.groupby(dftrain.columns[-1])[col].value_counts()
+        counts /= ycounts#sum([i+1 for i in featurecounts[col]])
+        dfcounts.append(counts)
 
-        dfprobgiven.append(probgiven)
-
-    dfprobgiven = pd.DataFrame(dfprobgiven).transpose()
+    dfcounts = pd.DataFrame(dfcounts).transpose()
 
     dfpos = {}
     dfneg = {}
     for col in dftest.columns[:-1]:
-        dfpos[col] = dftest[col].replace(dfprobgiven[col][positive])
-        dfneg[col] = dftest[col].replace(dfprobgiven[col][negative])
+        dfpos[col] = dftest[col].replace(dfcounts[col][positive])
+        dfneg[col] = dftest[col].replace(dfcounts[col][negative])
 
     dfpos = pd.DataFrame(dfpos)
     dfneg = pd.DataFrame(dfneg)

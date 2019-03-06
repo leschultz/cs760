@@ -181,7 +181,6 @@ def naive_bayes(X_train, y_train, X_test, y_test, meta):
 
     # The number of correct predictions
     ncorrect = np.sum(choice == y_test)
-    print(ncorrect)
 
     results = {
                'tree': structure,

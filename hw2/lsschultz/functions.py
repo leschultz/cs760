@@ -87,18 +87,21 @@ def naive_bayes(dftrain, dftest, meta):
 
     train = np.array(dftrain)  # Train data
     test = np.array(dftest)  # Test data
-    classes = meta[-1][-1]  # The number of available classes
 
     n = len(train)  # The number of prior entries
 
     types = [i[-1] for i in meta]  # The types of features
+    classes = meta[-1][-1]  # The number of available classes
 
-    # Create dictionary to keep track of column feature counts
-    counts = [{j: 0 for j in i} for i in types]
 
     # Compute prior counts for target
     priorcounts = np.unique(train[:, -1], return_counts=True)
     priorcounts = dict(zip(priorcounts[0], priorcounts[1]))
+
+    # Check to make sure all possible classes are counted
+    for i in types[-1]:
+        if priorcounts.get(i) is None:
+            priorcounts[i] = 0
 
     # Devide the training data based on the training feature
     classdivisions = {}
@@ -110,13 +113,17 @@ def naive_bayes(dftrain, dftest, meta):
     featurecounts = {}
     for key, value in classdivisions.items():
 
-        i = 0
+        i = 0  # Iterate for columns in counts
         featurecounts[key] = []
         for col in value.T:
-            print(types[i])
             count = np.unique(col, return_counts=True)
-            print(count)
             count = dict(zip(count[0], count[1]))
+
+            # Check to make sure all possible values are counted
+            for j in types[i]:
+                if count.get(j) is None:
+                    count[j] = 0
+
             featurecounts[key].append(count)
             i += 1
 
@@ -125,20 +132,46 @@ def naive_bayes(dftrain, dftest, meta):
     for key, value in priorcounts.items():
         priorprobs[key] = value/n
 
-    # Compute the probabilities on prior features for P(x|y)
+    # Compute the probabilities on prior features for P(X|Y)
     featureprobs = {}
     for key, value in featurecounts.items():
+
         featureprobs[key] = []
         for col in value:
             probs = {}
             for i in col:
                 probs[i] = col[i]/(priorcounts[key]+col[i])
+
             featureprobs[key].append(probs)
 
-    # Apply the probabilities on the test instances
+    # Apply the probabilities on the test features
+    testprobs = {}
+    for item in classes:
 
-    types = [i[-1] for i in meta]  # The types of features
-    counts = [len(i) for i in types]
+        i = 0
+        testprobs[item] = np.copy(test[:, :-1])
+        for col in test[:, :-1].transpose():
+
+            j = 0
+            for element in col:
+                replacement = featureprobs[item][i][element]
+                testprobs[item][j, i] = replacement
+                j += 1
+
+            i += 1
+
+    # Multiply the rows together for each of the classes
+    rowprods = {}
+    for item in classes:
+        rowprods[item] = np.prod(testprobs[item], axis=1)
+
+    # For every row multiply the prior probability for each class (binary)
+    numerator = priorprobs[classes[0]]*rowprods[classes[0]]
+    denominator = priorprobs[classes[0]]*rowprods[classes[0]]
+    denominator += priorprobs[classes[1]]*rowprods[classes[1]]
+    probabilities = numerator/denominator
+
+    print(probabilities)
 
 
 def conditional_mutual_information(X, y):

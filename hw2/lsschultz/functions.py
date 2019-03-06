@@ -87,12 +87,12 @@ def naive_bayes(dftrain, dftest, meta):
 
     train = np.array(dftrain)  # Train data
     test = np.array(dftest)  # Test data
-    test = test[0:1, :]
 
     n = len(train)  # The number of prior entries
 
     types = [i[-1] for i in meta]  # The types of features
-    classes = meta[-1][-1]  # The number of available classes
+    classes = meta[-1][-1]  # The available classes
+    nclasses = len(classes)  # The number of classes
 
     # Compute prior counts for target
     priorcounts = np.unique(train[:, -1], return_counts=True)
@@ -130,9 +130,9 @@ def naive_bayes(dftrain, dftest, meta):
     # The prior probabilities for each class
     priorprobs = {}
     for key, value in priorcounts.items():
-        priorprobs[key] = value/n
+        priorprobs[key] = (value+1)/(n+nclasses)
 
-    # Compute the probabilities on prior features for P(X|Y) This may be the fucked up step
+    # Compute the probabilities on prior features for P(X|Y)
     featureprobs = {}
     for key, value in featurecounts.items():
 
@@ -140,7 +140,7 @@ def naive_bayes(dftrain, dftest, meta):
         for col in value:
             probs = {}
             for i in col:
-                probs[i] = (col[i])/(priorcounts[key])
+                probs[i] = (col[i]+1)/(sum([j+1 for k, j in col.items()]))
 
             featureprobs[key].append(probs)
 

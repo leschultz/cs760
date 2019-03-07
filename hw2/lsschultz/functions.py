@@ -262,14 +262,79 @@ def tan(X_train, y_train, X_test, y_test, meta):
 
     types = [i[-1] for i in meta]  # The types of features
     classes = meta[-1][-1]  # The available classes
+    nfeatures = X_train.shape[1]  # The number of features
+    n = len(y_train)  # the number of instances
+    
 
     priorcounts, featurecounts = traincount(X_train, y_train, types, classes)
 
-    for i in range(X_train.shape[1]):
-        for j in range(X_train.shape[1]):
-            for item in classes:
-                1
+    # Compute the conditional mutual information
+    mutual = np.zeros((nfeatures, nfeatures))  # Zeros matrix for values
 
+    columns = X_train.transpose()
+
+    i = 0
+    for col1 in columns:
+        j = 0
+        for col2 in columns:
+            mutual[i, j] = mutualinfo(
+                                      col1,
+                                      types[0],
+                                      col2,
+                                      types[1],
+                                      y_train,
+                                      classes
+                                      )
+            j += 1
+        i += 1
+
+    print(mutual)
+
+
+def mutualinfo(col1, col1types, col2, col2types, y_train, classes):
+    '''
+    Compute the mutual information with binary classes.
+
+    inputs:
+    outputs:
+    '''
+
+    val = 0
+    for i in col1types:
+        icondition = np.where(col1 == i)
+        icounts = np.unique(
+                            col1[icondition],
+                            return_counts=True
+                            )
+        icounts = int(icounts[1])
+
+        for j in col2types:
+            jcondition = np.where(col2 == i)
+            jcounts = np.unique(
+                                col2[jcondition],
+                                return_counts=True
+                                )
+            jcounts = int(jcounts[1])
+
+            for item in classes:
+                classcondition = np.where(y_train == item)
+                classcounts = np.unique(
+                                        y_train[classcondition],
+                                        return_counts=True
+                                        )
+                classcounts = int(classcounts[1])
+
+                # Compute P(Xi,Xj,Y)
+                p = (icounts+jcounts+classcounts+1)/(icounts*jcounts*classcounts*3)
+                pxixjgiveny = (icounts+jcounts+1)/(classcounts+2)
+                pxigiveny = (icounts+1)/(classcounts+2)
+                pxjgiveny = (jcounts+1)/(classcounts+2)
+
+                val += p*np.log2(pxixjgiveny/(pxigiveny*pxjgiveny))
+
+    return val
+
+    '''
     count1 = 0
     for i in types[count1]:
 
@@ -281,13 +346,23 @@ def tan(X_train, y_train, X_test, y_test, meta):
                 xj = featurecounts[item][count2][j]
                 y = priorcounts[item]
 
-                # Compute P(xi, xj, y)
-                
-                print(xi, xj, y)
+                # Compute P(Xi,Xj,Y)
+                p = (xi+xj+y+1)/(xi*xj*y*3)
+                pxixjgiveny = (xi+xj+1)/(y+2)
+
+                sumi = sum([w+1 for k, w in featurecounts[item][count1].items()])
+                sumj = sum([w+1 for k, w in featurecounts[item][count2].items()])
+                pxigiveny = (xi+1)/sumi
+                pxjgiveny = (xj+1)/sumj
+
+                val += p*np.log2(pxixjgiveny/(pxigiveny*pxjgiveny))
 
             count2 += 1
 
         count1 += 1
+
+    print(val)
+    return(val)'''
 
 
 def print_info(results):

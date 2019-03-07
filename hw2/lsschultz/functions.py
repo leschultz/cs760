@@ -265,9 +265,29 @@ def tan(X_train, y_train, X_test, y_test, meta):
 
     priorcounts, featurecounts = traincount(X_train, y_train, types, classes)
 
-    # Compute the conditional mutual information
+    for i in range(X_train.shape[1]):
+        for j in range(X_train.shape[1]):
+            for item in classes:
+                1
 
-    print(featurecounts)
+    count1 = 0
+    for i in types[count1]:
+
+        count2 = 0
+        for j in types[count2]:
+
+            for item in classes:
+                xi = featurecounts[item][count1][i]
+                xj = featurecounts[item][count2][j]
+                y = priorcounts[item]
+
+                # Compute P(xi, xj, y)
+                
+                print(xi, xj, y)
+
+            count2 += 1
+
+        count1 += 1
 
 
 def print_info(results):

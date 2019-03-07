@@ -61,27 +61,19 @@ def datasplitter(x):
     return data, target
 
 
-def naive_bayes(X_train, y_train, X_test, y_test, meta):
+def traincount(X_train, y_train, types, classes):
     '''
-    Calculate probabilities based on Bayes' Rule. This uses the
-    Laplace estimate. Binary classification only.
+    Count the number of features and classes.
 
     inputs:
-        df = The data frame containg the features and target data
+        X_train = The training features
+        y_train = The training target feature
+        meta = The meta data
 
     outputs:
+        priorcounts = The counts for the classes
+        featurecounts = The counts for the features
     '''
-
-    n = len(y_train)  # The number of prior entries
-
-    types = [i[-1] for i in meta]  # The types of features
-    classes = meta[-1][-1]  # The available classes
-    nclasses = len(classes)  # The number of classes
-
-    # The tree used for probabilities
-    head = meta[-1][0]
-    nodes = [i[0] for i in meta[:-1]]
-    structure = [(i, head) for i in nodes]
 
     # Compute prior counts for target
     priorcounts = np.unique(y_train, return_counts=True)
@@ -116,6 +108,30 @@ def naive_bayes(X_train, y_train, X_test, y_test, meta):
             featurecounts[key].append(count)
             i += 1
 
+    return priorcounts, featurecounts
+
+
+def testprobabilities(X_train, y_train, X_test, types, classes):
+    '''
+    Calculate probabilities based on Bayes' Rule.
+
+    inputs:
+        X_train = The training features
+        y_train = The training target feature
+        X_test = The test features
+        meta = The meta data
+
+    outputs:
+        priorprobs = The class probabilities
+        testprobs = The probability array for a test input 
+    '''
+
+    n = len(y_train)  # The number of prior entries
+
+    nclasses = len(classes)  # The number of classes
+
+    priorcounts, featurecounts = traincount(X_train, y_train, types, classes)
+
     # The prior probabilities for each class
     priorprobs = {}
     for key, value in priorcounts.items():
@@ -148,6 +164,42 @@ def naive_bayes(X_train, y_train, X_test, y_test, meta):
                 j += 1
 
             i += 1
+
+    return priorprobs, testprobs
+
+
+def naive_bayes(X_train, y_train, X_test, y_test, meta):
+    '''
+    Calculate probabilities based on Bayes' Rule. This uses the
+    Laplace estimate. Binary classification only.
+
+    inputs:
+        X_train = The training features
+        y_train = The training target feature
+        X_test = The test features
+        y_test = The test target feature
+        meta = The meta data
+
+    outputs:
+        results = A dictionary containing all predictions and figures
+    '''
+
+    types = [i[-1] for i in meta]  # The types of features
+    classes = meta[-1][-1]  # The available classes
+
+    # The tree used for probabilities
+    head = meta[-1][0]
+    nodes = [i[0] for i in meta[:-1]]
+    structure = [(i, head) for i in nodes]
+
+    # Gather the probabilities for a testing instance
+    priorprobs, testprobs = testprobabilities(
+                                              X_train,
+                                              y_train,
+                                              X_test,
+                                              types,
+                                              classes
+                                              )
 
     # Multiply the rows together for each of the classes
     rowprods = {}
@@ -193,9 +245,37 @@ def naive_bayes(X_train, y_train, X_test, y_test, meta):
     return results
 
 
+def tan(X_train, y_train, X_test, y_test, meta):
+    '''
+    Use a tree augmented network (TAN) alorithm for prediction.
+
+    inputs:
+        X_train = The training features
+        y_train = The training target feature
+        X_test = The test features
+        y_test = The test target feature
+        meta = The meta data
+
+    outputs:
+        results = A dictionary containing all predictions and figures
+    '''
+
+    types = [i[-1] for i in meta]  # The types of features
+    classes = meta[-1][-1]  # The available classes
+
+    priorcounts, featurecounts = traincount(X_train, y_train, types, classes)
+
+    # Compute the conditional mutual information
+
+    print(featurecounts)
+
+
 def print_info(results):
     '''
-    Print the data to a file.
+    Print the standard data to a file.
+
+    inputs:
+        results = A dictionary containing all predictions and figures
     '''
 
     # Print the structe of the bayes net
@@ -223,18 +303,3 @@ def print_info(results):
     print(results['ncorrect'], file=sys.stdout)
 
     print(file=sys.stdout)
-    
-
-
-def conditional_mutual_information(X, y):
-    '''
-    Compute the conditional mutual information.
-
-    inputs:
-        X = The set of features
-        y = The set of targets
-    outputs:
-        
-    '''
-
-    

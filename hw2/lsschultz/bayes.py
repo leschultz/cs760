@@ -37,7 +37,11 @@ nt = args.nt
 # Load the training and testing data
 X_train, y_train, X_test, y_test, meta = load(args.train, args.test)
 
-
 if nt == 'n':
     probabilities = naive_bayes(X_train, y_train, X_test, y_test, meta)
     print_info(probabilities)
+
+if nt == 't':
+    probabilities = tan(X_train, y_train, X_test, y_test, meta)
+    #print_info(probabilities)
+

@@ -213,6 +213,7 @@ def print_info(results):
                   )
 
     for i, j, k in section:
+        k = '{:.12f}'.format(np.round(k, 12))
         out = ' '.join(map(str, (i, j, k)))
         print(out, file=sys.stdout)
 

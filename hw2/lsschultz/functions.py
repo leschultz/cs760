@@ -127,7 +127,6 @@ def testprobabilities(X_train, y_train, X_test, types, classes):
     '''
 
     n = len(y_train)  # The number of prior entries
-
     nclasses = len(classes)  # The number of classes
 
     priorcounts, featurecounts = traincount(X_train, y_train, types, classes)
@@ -168,7 +167,16 @@ def testprobabilities(X_train, y_train, X_test, types, classes):
     return priorprobs, testprobs
 
 
-def mutualinfo(col1, col1types, col2, col2types, y_train, classes):
+def mutualinfo(
+               col1,
+               col1types,
+               col2,
+               col2types,
+               y_train,
+               classes,
+               n,
+               n_classes
+               ):
     '''
     Compute the conditional mutual information with binary classes.
 
@@ -179,12 +187,11 @@ def mutualinfo(col1, col1types, col2, col2types, y_train, classes):
         col2types = The available types for col2
         y_train = The class data
         classes = The available classes
+        n = The number of training instances
+        n_classes = The number of classes
     outputs:
         val = The conditional mutual inforamtion between col1 and col2
     '''
-
-    n_classes = len(classes)
-    n = len(y_train)
 
     val = 0
     for i in col1types:
@@ -209,7 +216,7 @@ def mutualinfo(col1, col1types, col2, col2types, y_train, classes):
                 xigivenycount = len(col1[xigiveny])+1
                 xjgivenycount = len(col2[xjgiveny])+1
 
-                # Compute P(Xi,Xj,Y)
+                # Compute probabilities
                 pxixjy = (xixjycount)/(n+n_col1types*n_col2types*n_classes)
                 pxixjgiveny = (xixjycount)/(y+n_col1types*n_col2types)
                 pxigiveny = (xigivenycount)/(y+n_col1types)
@@ -218,6 +225,32 @@ def mutualinfo(col1, col1types, col2, col2types, y_train, classes):
                 val += pxixjy*np.log2(pxixjgiveny/(pxigiveny*pxjgiveny))
 
     return val
+
+
+def mstprim(weights, features, nfeatures):
+    '''
+    Apply Prim's alogorithm to find MST.
+
+    inputs:
+    outputs:
+    '''
+
+    nodes = np.array(range(nfeatures))
+    print(nodes)
+
+    vnew = np.array([nodes[0]])
+    enew = []
+
+    newnodes = nodes[np.where(nodes != vnew)]
+    print(newnodes)
+
+    newweights = []
+    for i in newnodes:
+        newweights.append(weights[vnew, i])
+
+    u = newnodes[np.argmax(newweights)]
+
+    print(u)
 
 
 def naive_bayes(X_train, y_train, X_test, y_test, meta):
@@ -311,10 +344,12 @@ def tan(X_train, y_train, X_test, y_test, meta):
         results = A dictionary containing all predictions and figures
     '''
 
-    types = [i[-1] for i in meta]  # The types of features
+    types = [i[-1] for i in meta[:-1]]  # The types of features per column
     classes = meta[-1][-1]  # The available classes
+    features = [i[0] for i in meta[:-1]]
     nfeatures = X_train.shape[1]  # The number of features
-    n = len(y_train)  # the number of instances
+    n = len(y_train)  # The number of instances
+    nclasses = len(classes)  # The number of classes
 
     # Compute the conditional mutual information
     mutual = np.zeros((nfeatures, nfeatures))  # Zeros matrix for values
@@ -330,9 +365,11 @@ def tan(X_train, y_train, X_test, y_test, meta):
                                       columns[j],
                                       types[j],
                                       y_train,
-                                      classes
+                                      classes,
+                                      n,
+                                      nclasses
                                       )
-    print(mutual)
+    mstprim(mutual, features, nfeatures)
 
 
 def print_info(results):

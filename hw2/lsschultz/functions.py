@@ -264,9 +264,6 @@ def tan(X_train, y_train, X_test, y_test, meta):
     classes = meta[-1][-1]  # The available classes
     nfeatures = X_train.shape[1]  # The number of features
     n = len(y_train)  # the number of instances
-    
-
-    priorcounts, featurecounts = traincount(X_train, y_train, types, classes)
 
     # Compute the conditional mutual information
     mutual = np.zeros((nfeatures, nfeatures))  # Zeros matrix for values
@@ -293,76 +290,49 @@ def tan(X_train, y_train, X_test, y_test, meta):
 
 def mutualinfo(col1, col1types, col2, col2types, y_train, classes):
     '''
-    Compute the mutual information with binary classes.
+    Compute the conditional mutual information with binary classes.
 
     inputs:
     outputs:
     '''
 
+    n_classes = len(classes)
+    n = len(y_train)
+
     val = 0
     for i in col1types:
-        icondition = np.where(col1 == i)
-        icounts = np.unique(
-                            col1[icondition],
-                            return_counts=True
-                            )
-        icounts = int(icounts[1])
+        n_col1types = len(col1types)
+        xicondition = (col1 == i)
 
         for j in col2types:
-            jcondition = np.where(col2 == i)
-            jcounts = np.unique(
-                                col2[jcondition],
-                                return_counts=True
-                                )
-            jcounts = int(jcounts[1])
+            n_col2types = len(col2types)
+            xjcondition = (col2 == j)
 
             for item in classes:
-                classcondition = np.where(y_train == item)
-                classcounts = np.unique(
-                                        y_train[classcondition],
-                                        return_counts=True
-                                        )
-                classcounts = int(classcounts[1])
+                ycondition = (y_train == item)
+                y = len(y_train[ycondition])
+
+                # Conditions for counting
+                xigiveny = xicondition & ycondition
+                xjgiveny = xjcondition & ycondition
+                xixjy = xicondition & xjcondition & ycondition
+
+                # The counts based on conditions
+                xixjycount = len(y_train[xixjy])+1
+                xigivenycount = len(col1[xigiveny])+1
+                xjgivenycount = len(col2[xjgiveny])+1
 
                 # Compute P(Xi,Xj,Y)
-                p = (icounts+jcounts+classcounts+1)/(icounts*jcounts*classcounts*3)
-                pxixjgiveny = (icounts+jcounts+1)/(classcounts+2)
-                pxigiveny = (icounts+1)/(classcounts+2)
-                pxjgiveny = (jcounts+1)/(classcounts+2)
+                pxixjy = (xixjycount)/(n+n_col1types*n_col2types*n_classes)
+                pxixjgiveny = (xixjycount)/(y+n_col1types*n_col2types)
+                pxigiveny = (xigivenycount)/(y+n_col1types)
+                pxjgiveny = (xjgivenycount)/(y+n_col2types)
 
-                val += p*np.log2(pxixjgiveny/(pxigiveny*pxjgiveny))
-
-    return val
-
-    '''
-    count1 = 0
-    for i in types[count1]:
-
-        count2 = 0
-        for j in types[count2]:
-
-            for item in classes:
-                xi = featurecounts[item][count1][i]
-                xj = featurecounts[item][count2][j]
-                y = priorcounts[item]
-
-                # Compute P(Xi,Xj,Y)
-                p = (xi+xj+y+1)/(xi*xj*y*3)
-                pxixjgiveny = (xi+xj+1)/(y+2)
-
-                sumi = sum([w+1 for k, w in featurecounts[item][count1].items()])
-                sumj = sum([w+1 for k, w in featurecounts[item][count2].items()])
-                pxigiveny = (xi+1)/sumi
-                pxjgiveny = (xj+1)/sumj
-
-                val += p*np.log2(pxixjgiveny/(pxigiveny*pxjgiveny))
-
-            count2 += 1
-
-        count1 += 1
+                val += pxixjy*np.log2(pxixjgiveny/(pxigiveny*pxjgiveny))
 
     print(val)
-    return(val)'''
+
+    return val
 
 
 def print_info(results):

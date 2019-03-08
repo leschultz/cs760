@@ -2,6 +2,7 @@
 This script standardizes the data for machine learning.
 '''
 
+import scipy.sparse as sparse
 import numpy as np
 
 import json
@@ -235,6 +236,18 @@ def mstprim(weights, features, nfeatures):
     outputs:
     '''
 
+    c = np.full(nfeatures, np.inf)
+    e = []
+
+    f = []
+    q = list(range(nfeatures))
+
+    while len(q) > 0:
+        q.pop
+
+    
+
+    '''
     n = range(nfeatures)
     nodes = np.array(n)
 
@@ -267,17 +280,16 @@ def mstprim(weights, features, nfeatures):
         enew.append(e)
         count += 1
 
-        print(weights[v])
-        print(v)
-        print(count)
-        print('\n')
-
+    featurepairs = []
     for node in vertexes:
-        featurepair = (features[node[0]], features[node[1]])
+        featurepairs.append((features[node[0]], features[node[1]]))
 
     data = {}
     data['vertexes'] = vertexes
     data['weights'] = enew
+    data['pair'] = featurepairs
+
+    print(data)'''
 
 def naive_bayes(X_train, y_train, X_test, y_test, meta):
     '''

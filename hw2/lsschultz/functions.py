@@ -87,7 +87,7 @@ def traincount(X_train, y_train, types, classes):
     # Devide the training data based on the training feature
     classdivisions = {}
     for item in classes:
-        division = X_train[np.where(y_train==item)[0]]
+        division = X_train[np.where(y_train == item)[0]]
         classdivisions[item] = division
 
     # Calculate the counts for each column
@@ -123,7 +123,7 @@ def testprobabilities(X_train, y_train, X_test, types, classes):
 
     outputs:
         priorprobs = The class probabilities
-        testprobs = The probability array for a test input 
+        testprobs = The probability array for a test input
     '''
 
     n = len(y_train)  # The number of prior entries
@@ -166,6 +166,58 @@ def testprobabilities(X_train, y_train, X_test, types, classes):
             i += 1
 
     return priorprobs, testprobs
+
+
+def mutualinfo(col1, col1types, col2, col2types, y_train, classes):
+    '''
+    Compute the conditional mutual information with binary classes.
+
+    inputs:
+        col1 = A feature column
+        col1types = The available types for col1
+        col2 = A feature column
+        col2types = The available types for col2
+        y_train = The class data
+        classes = The available classes
+    outputs:
+        val = The conditional mutual inforamtion between col1 and col2
+    '''
+
+    n_classes = len(classes)
+    n = len(y_train)
+
+    val = 0
+    for i in col1types:
+        n_col1types = len(col1types)
+        xicondition = (col1 == i)
+
+        for j in col2types:
+            n_col2types = len(col2types)
+            xjcondition = (col2 == j)
+
+            for item in classes:
+                ycondition = (y_train == item)
+                y = len(y_train[ycondition])
+
+                # Conditions for counting
+                xigiveny = xicondition & ycondition
+                xjgiveny = xjcondition & ycondition
+                xixjy = xicondition & xjcondition & ycondition
+
+                # The counts based on conditions
+                xixjycount = len(y_train[xixjy])+1
+                xigivenycount = len(col1[xigiveny])+1
+                xjgivenycount = len(col2[xjgiveny])+1
+
+                # Compute P(Xi,Xj,Y)
+                pxixjy = (xixjycount)/(n+n_col1types*n_col2types*n_classes)
+                pxixjgiveny = (xixjycount)/(y+n_col1types*n_col2types)
+                pxigiveny = (xigivenycount)/(y+n_col1types)
+                pxjgiveny = (xjgivenycount)/(y+n_col2types)
+
+                val += pxixjy*np.log2(pxixjgiveny/(pxigiveny*pxjgiveny))
+
+    return val
 
 
 def naive_bayes(X_train, y_train, X_test, y_test, meta):
@@ -218,7 +270,6 @@ def naive_bayes(X_train, y_train, X_test, y_test, meta):
 
         probabilities[item] = numerator/denominator
 
-
     # Choose by the maximum probability
     maxprobs = probabilities[classes[0]]  # Initial probabilities
     choice = [classes[0] for i in maxprobs]  # Initial choices
@@ -269,70 +320,19 @@ def tan(X_train, y_train, X_test, y_test, meta):
     mutual = np.zeros((nfeatures, nfeatures))  # Zeros matrix for values
 
     columns = X_train.transpose()
+    n_columns = columns.shape[0]
 
-    i = 0
-    for col1 in columns:
-        j = 0
-        for col2 in columns:
+    for i in range(n_columns):
+        for j in range(n_columns):
             mutual[i, j] = mutualinfo(
-                                      col1,
-                                      types[0],
-                                      col2,
-                                      types[1],
+                                      columns[i],
+                                      types[i],
+                                      columns[j],
+                                      types[j],
                                       y_train,
                                       classes
                                       )
-            j += 1
-        i += 1
-
     print(mutual)
-
-
-def mutualinfo(col1, col1types, col2, col2types, y_train, classes):
-    '''
-    Compute the conditional mutual information with binary classes.
-
-    inputs:
-    outputs:
-    '''
-
-    n_classes = len(classes)
-    n = len(y_train)
-
-    val = 0
-    for i in col1types:
-        n_col1types = len(col1types)
-        xicondition = (col1 == i)
-
-        for j in col2types:
-            n_col2types = len(col2types)
-            xjcondition = (col2 == j)
-
-            for item in classes:
-                ycondition = (y_train == item)
-                y = len(y_train[ycondition])
-
-                # Conditions for counting
-                xigiveny = xicondition & ycondition
-                xjgiveny = xjcondition & ycondition
-                xixjy = xicondition & xjcondition & ycondition
-
-                # The counts based on conditions
-                xixjycount = len(y_train[xixjy])+1
-                xigivenycount = len(col1[xigiveny])+1
-                xjgivenycount = len(col2[xjgiveny])+1
-
-                # Compute P(Xi,Xj,Y)
-                pxixjy = (xixjycount)/(n+n_col1types*n_col2types*n_classes)
-                pxixjgiveny = (xixjycount)/(y+n_col1types*n_col2types)
-                pxigiveny = (xigivenycount)/(y+n_col1types)
-                pxjgiveny = (xjgivenycount)/(y+n_col2types)
-
-                val += pxixjy*np.log2(pxixjgiveny/(pxigiveny*pxjgiveny))
-
-    print(val)
-
-    return val
 
 
 def print_info(results):

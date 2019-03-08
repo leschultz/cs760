@@ -235,23 +235,49 @@ def mstprim(weights, features, nfeatures):
     outputs:
     '''
 
-    nodes = np.array(range(nfeatures))
-    print(nodes)
+    n = range(nfeatures)
+    nodes = np.array(n)
 
-    vnew = np.array([nodes[0]])
+    v = nodes[0]
+    vnew = [v]
     enew = []
 
-    newnodes = nodes[np.where(nodes != vnew)]
-    print(newnodes)
+    vertexes = []
 
-    newweights = []
-    for i in newnodes:
-        newweights.append(weights[vnew, i])
+    data = {'vertex': [], 'weight': []}  # Store data
+    count = 0
+    condition = (nodes != vnew[0])
+    while len(vnew) < nfeatures:
 
-    u = newnodes[np.argmax(newweights)]
+        condition = condition & (nodes != vnew[count])
+        newnodes = nodes[np.where(condition)]
 
-    print(u)
+        newweights = []
+        for i in newnodes:
+            newweights.append(weights[i, v])
 
+        vertex = [v]
+        v = newnodes[np.argmax(newweights)]
+        e = newweights[np.argmax(newweights)]
+
+        vertex.append(v)
+        vertexes.append(tuple(vertex))
+
+        vnew.append(v)
+        enew.append(e)
+        count += 1
+
+        print(weights[v])
+        print(v)
+        print(count)
+        print('\n')
+
+    for node in vertexes:
+        featurepair = (features[node[0]], features[node[1]])
+
+    data = {}
+    data['vertexes'] = vertexes
+    data['weights'] = enew
 
 def naive_bayes(X_train, y_train, X_test, y_test, meta):
     '''

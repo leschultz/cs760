@@ -2,6 +2,9 @@
 This script standardizes the data for machine learning.
 '''
 
+from itertools import combinations
+
+from scipy import sparse as sparse
 import scipy.sparse as sparse
 import numpy as np
 
@@ -230,66 +233,54 @@ def mutualinfo(
 
 def mstprim(weights, features, nfeatures):
     '''
-    Apply Prim's alogorithm to find MST.
+    Apply Prim's alogorithm to find MST for an edge list.
 
     inputs:
+        weights = The weights for a graph
+        features = The features of interest
+        nfeatures = The number of features
     outputs:
+        mstvertexes = The vertexes for an MST
+        mstedges = The edges for an MST
     '''
 
-    c = np.full(nfeatures, np.inf)
-    e = []
+    # Create an edge list
+    edges = combinations(features, 2)
+    edges = [i for i in edges]
 
-    f = []
-    q = list(range(nfeatures))
+    # The edge list with indexes
+    nodes = np.array(list(range(nfeatures)))  # Replace featueres with numbers
+    edgecord = combinations(nodes, 2)
+    edgecord = [i for i in edgecord]
 
-    while len(q) > 0:
-        q.pop
-
-    
-
-    '''
-    n = range(nfeatures)
-    nodes = np.array(n)
-
-    v = nodes[0]
-    vnew = [v]
+    # Apply Prim's Algorithm
+    vnew = [nodes[0]]
     enew = []
+    weightsnew = []
+    while len(vnew) != nfeatures:
 
-    vertexes = []
+        edgenew = [i for i in edgecord if (i[0] in vnew) & (i[1] not in vnew)]
+        weightsnew = [weights[i] for i in edgenew]
 
-    data = {'vertex': [], 'weight': []}  # Store data
-    count = 0
-    condition = (nodes != vnew[0])
-    while len(vnew) < nfeatures:
+        # Find maximum weight index
+        index = np.argmax(np.array(weightsnew))
 
-        condition = condition & (nodes != vnew[count])
-        newnodes = nodes[np.where(condition)]
-
-        newweights = []
-        for i in newnodes:
-            newweights.append(weights[i, v])
-
-        vertex = [v]
-        v = newnodes[np.argmax(newweights)]
-        e = newweights[np.argmax(newweights)]
-
-        vertex.append(v)
-        vertexes.append(tuple(vertex))
+        w = weightsnew[index]  # Maximum weight
+        e = edgenew[index]  # Maximum weight edge
+        u, v = e
 
         vnew.append(v)
         enew.append(e)
-        count += 1
+        weightsnew.append(w)
 
-    featurepairs = []
-    for node in vertexes:
-        featurepairs.append((features[node[0]], features[node[1]]))
+    mstedges = []
+    for i in enew:
+        mstedges.append(tuple(features[j] for j in i))
 
-    data = {}
-    data['vertexes'] = vertexes
-    data['weights'] = enew
-    data['pair'] = featurepairs
+    mstvertexes = [features[i] for i in vnew]
 
-    print(data)'''
+    return mstvertexes, mstedges
+
 
 def naive_bayes(X_train, y_train, X_test, y_test, meta):
     '''

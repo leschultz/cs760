@@ -6,6 +6,7 @@ from itertools import combinations
 
 from scipy import sparse as sparse
 import scipy.sparse as sparse
+import pandas as pd
 import numpy as np
 
 import json
@@ -231,7 +232,7 @@ def mutualinfo(
     return val
 
 
-def mstprim(weights, features, nfeatures):
+def mstprim(weights, features, classname, nfeatures):
     '''
     Apply Prim's alogorithm to find MST for an edge list.
 
@@ -244,42 +245,40 @@ def mstprim(weights, features, nfeatures):
         mstedges = The edges for an MST
     '''
 
-    # Create an edge list
-    edges = combinations(features, 2)
-    edges = [i for i in edges]
-
-    # The edge list with indexes
-    nodes = np.array(list(range(nfeatures)))  # Replace featueres with numbers
-    edgecord = combinations(nodes, 2)
-    edgecord = [i for i in edgecord]
+    import pandas as pd
+    weights = pd.DataFrame(weights, features, columns=features)
+    nodes = np.array(features)
 
     # Apply Prim's Algorithm
     vnew = [nodes[0]]
     enew = []
-    weightsnew = []
+
     while len(vnew) != nfeatures:
 
-        edgenew = [i for i in edgecord if (i[0] in vnew) & (i[1] not in vnew)]
-        weightsnew = [weights[i] for i in edgenew]
+        df = weights.loc[vnew, :]
+        df = df.drop(vnew, axis=1)
 
-        # Find maximum weight index
-        index = np.argmax(np.array(weightsnew))
+        # Find the edge with the maximum weight
+        index = np.where(df.values == np.max(df.values))
 
-        w = weightsnew[index]  # Maximum weight
-        e = edgenew[index]  # Maximum weight edge
+        e = (df.iloc[index].index[0], df.iloc[index].columns[0])
         u, v = e
 
         vnew.append(v)
         enew.append(e)
-        weightsnew.append(w)
 
-    mstedges = []
-    for i in enew:
-        mstedges.append(tuple(features[j] for j in i))
+    data = {i: [] for i in features}
+    for feature in features:
+        for j in enew[1:]:
+            if feature == j[1]:
+                data[feature].append(j[0])
 
-    mstvertexes = [features[i] for i in vnew]
+        data[feature].append(classname)
 
-    return mstvertexes, mstedges
+    for key, value in data.items():
+        print(key, value)
+
+    return vnew, enew
 
 
 def naive_bayes(X_train, y_train, X_test, y_test, meta):
@@ -375,6 +374,7 @@ def tan(X_train, y_train, X_test, y_test, meta):
 
     types = [i[-1] for i in meta[:-1]]  # The types of features per column
     classes = meta[-1][-1]  # The available classes
+    classname = meta[-1][0]  # The name of the class
     features = [i[0] for i in meta[:-1]]
     nfeatures = X_train.shape[1]  # The number of features
     n = len(y_train)  # The number of instances
@@ -398,7 +398,8 @@ def tan(X_train, y_train, X_test, y_test, meta):
                                       n,
                                       nclasses
                                       )
-    mstprim(mutual, features, nfeatures)
+
+    mstprim(mutual, features, classname, nfeatures)
 
 
 def print_info(results):

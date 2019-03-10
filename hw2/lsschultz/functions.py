@@ -396,6 +396,23 @@ def tan(X_train, y_train, X_test, y_test, meta):
     # Use Prim's algorithm for MST
     mst = mstprim(mutual, features, classname, nfeatures)
 
+    types = {i[0]: i[1] for i in meta}
+    for item in classes:
+        condition = (y_train == item)
+        for feature in features:
+            parents = mst[feature][:-1]
+            columns = [feature]+parents
+
+            for col in columns:
+                index = features.index(col)
+
+    for child, parents in mst.items():
+        columns = [child]+parents
+        indexcolumns = [features.index(i) for i in columns]
+        print(indexcolumns)
+        condition1 = (y_train == 1)
+
+
     # Organize data into pandas dataframes
     dftrain = pd.DataFrame(X_train, columns=features)
     dftrain[classname] = y_train

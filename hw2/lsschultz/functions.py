@@ -393,67 +393,46 @@ def tan(X_train, y_train, X_test, y_test, meta):
                                       nclasses
                                       )
 
+    # Use Prim's algorithm for MST
     mst = mstprim(mutual, features, classname, nfeatures)
 
+    # Organize data into pandas dataframes
     dftrain = pd.DataFrame(X_train, columns=features)
     dftrain[classname] = y_train
 
     dftest = pd.DataFrame(X_test, columns=features)
     dftest[classname] = y_test
 
-    # Get the counts for the features based on classes
-    Xcounts = []
-    for col in dftrain.columns[:-1]:
-        counts = dftrain.groupby(dftrain.columns[-1])[col].value_counts()
-        Xcounts.append(counts)
+    # Save the lengths for feature values
+    typelengths = {i[0]: len(i[1]) for i in meta}
 
-    Xcounts = pd.DataFrame(Xcounts).transpose()
-    Ycounts = dftrain.groupby(classname).count()
-
-    types = {i[0]: i[1] for i in meta}
+    probabilities = {}
     for child, parents in mst.items():
         columns = [child]+parents
+        columns = columns[::-1]
         df = dftrain[columns]
 
-        for i in types[child]:
-            condition = (df[child] == i)
-            for parent in parents:
-                for j in types[parent]:
-                    print(j)
-            print(condition)
+        # Get the lengths for feature items
+        lengths = []
+        for col in columns:
+            lengths.append(typelengths[col])
 
+        group = pd.DataFrame(df.groupby(columns).size())
 
-    count = 0
-    for feature in features:
-        #tanprobabilities(X_train, y_train, count, types[count], mst[feature], classes)
-        count += 1
-
-
-def tanprobabilities(X_train, y_train, feature, types, parents, classes):
-    '''
-    The probabilities computation for TAN.
-    '''
-
-    # Positive conditions
-
-    # Negative conditions
-
-    for x in X_train[:, feature]:
-        print(x)
-        types = len(types)
-        xicondition = (X_train[:, feature] == x)
-
+        probabilities[child] = {}
         for item in classes:
-            ycondition = (y_train == item)
-            y = len(y_train[ycondition])
+            num = group.loc[item]+1
+            den = n+np.prod(lengths)
 
-            # Conditions for counting
+            probabilities[child][item] = num/den
 
-            # The counts based on conditions
-            xixjycount = len(y_train[xixjy])+1
+    # Apply the probabilities on the test features
+    dfpred = pd.DataFrame().reindex_like(dftest[:-1])
+    for child, parents in mst.items():
+        columns = [child]+parents
+        columns = columns[::-1]
+        df = dftrain[columns]
 
-            # Compute probabilities
-            pxixjy = (xixjycount)/(n+n_col1types*n_col2types*n_classes)
 
 
 def print_info(results):

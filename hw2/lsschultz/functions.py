@@ -7,6 +7,7 @@ import scipy.sparse as sparse
 import pandas as pd
 import numpy as np
 
+import itertools
 import json
 import sys
 
@@ -396,60 +397,74 @@ def tan(X_train, y_train, X_test, y_test, meta):
     # Use Prim's algorithm for MST
     mst = mstprim(mutual, features, classname, nfeatures)
 
-    types = {i[0]: i[1] for i in meta}
-    for item in classes:
-        condition = (y_train == item)
-        for feature in features:
-            parents = mst[feature][:-1]
-            columns = [feature]+parents
+    train = np.column_stack((X_train, y_train))
+    features.append(classname)
+    types.append(classes)
 
-            for col in columns:
-                index = features.index(col)
+    typeslength = {i[0]: len(i[1]) for i in meta}
 
+    mstprobs = {}
     for child, parents in mst.items():
+        mstprobs[child] = {}
+
         columns = [child]+parents
         indexcolumns = [features.index(i) for i in columns]
-        print(indexcolumns)
-        condition1 = (y_train == 1)
+
+        # Truncate the data to relevant sections
+        data = train[:, indexcolumns]
+
+         # The lengths for the features used
+        lengths = typeslength[child]
+
+        # Determine the possible combinations of feature items
+        a = [types[features.index(i)] for i in columns]
+        a = list(itertools.product(*a))
+        for i in a:
+
+            count = 0
+            conditions = []
+            for j in i:
+                condition = (data[:, count] == j)
+                conditions.append(condition)
+
+                count += 1
+
+            numcondition = conditions[0]
+            for j in conditions[1:]:
+                numcondition = numcondition & j
+
+            dencondition = conditions[1]
+            for j in conditions[2:]:
+                dencondition = dencondition & j
 
 
-    # Organize data into pandas dataframes
-    dftrain = pd.DataFrame(X_train, columns=features)
-    dftrain[classname] = y_train
+            if len(data[numcondition]) == 0:
+                num = 0
+            else:
+                num = len(data[numcondition])
 
-    dftest = pd.DataFrame(X_test, columns=features)
-    dftest[classname] = y_test
+            if len(data[dencondition]) == 0:
+                den = 0
+            else:
+                den = len(data[dencondition])
 
-    # Save the lengths for feature values
-    typelengths = {i[0]: len(i[1]) for i in meta}
+            num += 1
+            den += lengths
 
-    probabilities = {}
-    for child, parents in mst.items():
+            mstprobs[child][i] = num/den
+
+    # Clean the data
+    
+
+    tableprobs = {}
+    for item in classes:
+        tableprobs[item] = train.copy()
+
+    for feature, values in mstprobs.items():
         columns = [child]+parents
-        columns = columns[::-1]
-        df = dftrain[columns]
+        indexcolumns = [features.index(i) for i in columns]
 
-        # Get the lengths for feature items
-        lengths = []
-        for col in columns:
-            lengths.append(typelengths[col])
-
-        group = pd.DataFrame(df.groupby(columns).size())
-
-        probabilities[child] = {}
-        for item in classes:
-            num = group.loc[item]+1
-            den = n+np.prod(lengths)
-
-            probabilities[child][item] = num/den
-
-    # Apply the probabilities on the test features
-    dfpred = pd.DataFrame().reindex_like(dftest[:-1])
-    for child, parents in mst.items():
-        columns = [child]+parents
-        columns = columns[::-1]
-        df = dftrain[columns]
-
+        print(feature, values)
 
 
 def print_info(results):

@@ -393,7 +393,67 @@ def tan(X_train, y_train, X_test, y_test, meta):
                                       nclasses
                                       )
 
-    mstprim(mutual, features, classname, nfeatures)
+    mst = mstprim(mutual, features, classname, nfeatures)
+
+    dftrain = pd.DataFrame(X_train, columns=features)
+    dftrain[classname] = y_train
+
+    dftest = pd.DataFrame(X_test, columns=features)
+    dftest[classname] = y_test
+
+    # Get the counts for the features based on classes
+    Xcounts = []
+    for col in dftrain.columns[:-1]:
+        counts = dftrain.groupby(dftrain.columns[-1])[col].value_counts()
+        Xcounts.append(counts)
+
+    Xcounts = pd.DataFrame(Xcounts).transpose()
+    Ycounts = dftrain.groupby(classname).count()
+
+    types = {i[0]: i[1] for i in meta}
+    for child, parents in mst.items():
+        columns = [child]+parents
+        df = dftrain[columns]
+
+        for i in types[child]:
+            condition = (df[child] == i)
+            for parent in parents:
+                for j in types[parent]:
+                    print(j)
+            print(condition)
+
+
+    count = 0
+    for feature in features:
+        #tanprobabilities(X_train, y_train, count, types[count], mst[feature], classes)
+        count += 1
+
+
+def tanprobabilities(X_train, y_train, feature, types, parents, classes):
+    '''
+    The probabilities computation for TAN.
+    '''
+
+    # Positive conditions
+
+    # Negative conditions
+
+    for x in X_train[:, feature]:
+        print(x)
+        types = len(types)
+        xicondition = (X_train[:, feature] == x)
+
+        for item in classes:
+            ycondition = (y_train == item)
+            y = len(y_train[ycondition])
+
+            # Conditions for counting
+
+            # The counts based on conditions
+            xixjycount = len(y_train[xixjy])+1
+
+            # Compute probabilities
+            pxixjy = (xixjycount)/(n+n_col1types*n_col2types*n_classes)
 
 
 def print_info(results):

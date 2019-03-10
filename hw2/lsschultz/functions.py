@@ -2,8 +2,6 @@
 This script standardizes the data for machine learning.
 '''
 
-from itertools import combinations
-
 from scipy import sparse as sparse
 import scipy.sparse as sparse
 import pandas as pd
@@ -241,11 +239,9 @@ def mstprim(weights, features, classname, nfeatures):
         features = The features of interest
         nfeatures = The number of features
     outputs:
-        mstvertexes = The vertexes for an MST
-        mstedges = The edges for an MST
+        data = Each featres with a list of parents
     '''
 
-    import pandas as pd
     weights = pd.DataFrame(weights, features, columns=features)
     nodes = np.array(features)
 
@@ -267,18 +263,16 @@ def mstprim(weights, features, classname, nfeatures):
         vnew.append(v)
         enew.append(e)
 
-    data = {i: [] for i in features}
+    data = {}
     for feature in features:
-        for j in enew[1:]:
-            if feature == j[1]:
-                data[feature].append(j[0])
+        data[feature] = []
+        for e in enew:
+            if e[1] == feature:
+                data[feature].append(e[0])
 
         data[feature].append(classname)
 
-    for key, value in data.items():
-        print(key, value)
-
-    return vnew, enew
+    return data
 
 
 def naive_bayes(X_train, y_train, X_test, y_test, meta):

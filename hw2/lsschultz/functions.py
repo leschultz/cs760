@@ -599,6 +599,7 @@ def pr(yc, confidences, positive, predictions):
     fp = 0
     last_tp = 0
     coordinates = []  # The FPR and TPR coordinates (FPR, TPR)
+    count = 0
     for i in range(length):
 
         # List of conditions to find the thresholds where there is a positive
@@ -606,10 +607,10 @@ def pr(yc, confidences, positive, predictions):
         condition = (i > 1)
         condition = condition and (rocdata[i][0]!=rocdata[i-1][0])
         condition = condition and (rocdata[i][1]!=positive)
-        condition = condition and (tp>last_tp)
+        condition = condition and (tp>confidences[count])
 
         if condition:
-            pre = 1-tp/num_pospred
+            pre = tp/num_pospred
             tpr = (tp)/num_pos
             last_tp = tp
 
@@ -621,7 +622,9 @@ def pr(yc, confidences, positive, predictions):
         else:
             fp += 1
 
-    pre = 1-tp/num_pospred
+        count += 1
+
+    pre = tp/num_pospred
     tpr = tp/num_pos
 
     coordinates.append((tpr, pre))

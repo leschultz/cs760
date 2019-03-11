@@ -566,3 +566,65 @@ def print_info(results):
     print(results['ncorrect'], file=sys.stdout)
 
     print(file=sys.stdout)
+
+
+def pr(yc, confidences, positive, predictions):
+    '''
+    Generate the data for PR.
+
+    inputs:
+        confidences = The confidence values
+        yc = The true classes for the test set
+        positive = The positive class
+
+    outputs:
+        coordinates = The (PPV, TPR) coordinates
+    '''
+
+    # Sort the data based on predicted confidence
+    rocdata = [(i, j) for i, j in zip (confidences, yc)]
+    rocdata = sorted(rocdata, reverse=True)
+
+    length = len(rocdata)
+
+    # The number of negative/positve instances in the test set
+    num_neg = sum((i!=positive) for i in yc)
+    num_pos = length-num_neg
+
+    # The number of negative/positve instances in the predictions
+    num_negpred = sum((i!=positive) for i in predictions)
+    num_pospred = length-num_negpred
+
+    tp = 0
+    fp = 0
+    last_tp = 0
+    coordinates = []  # The FPR and TPR coordinates (FPR, TPR)
+    for i in range(length):
+
+        # List of conditions to find the thresholds where there is a positive
+        # on the high side and a negative instance on the low side
+        condition = (i > 1)
+        condition = condition and (rocdata[i][0]!=rocdata[i-1][0])
+        condition = condition and (rocdata[i][1]!=positive)
+        condition = condition and (tp>last_tp)
+
+        if condition:
+            pre = 1-tp/num_pospred
+            tpr = (tp)/num_pos
+            last_tp = tp
+
+            coordinates.append((tpr, pre))
+
+        if rocdata[i][1] == positive:
+            tp += 1
+
+        else:
+            fp += 1
+
+    pre = 1-tp/num_pospred
+    tpr = tp/num_pos
+
+    coordinates.append((tpr, pre))
+
+    return coordinates
+

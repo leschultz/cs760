@@ -453,18 +453,27 @@ def tan(X_train, y_train, X_test, y_test, meta):
 
             mstprobs[child][i] = num/den
 
-    # Clean the data
-    
-
-    tableprobs = {}
-    for item in classes:
-        tableprobs[item] = train.copy()
-
-    for feature, values in mstprobs.items():
+    # Make a table with all the probabilities
+    tableprobs = train.copy()
+    for child, parents in mst.items():
         columns = [child]+parents
         indexcolumns = [features.index(i) for i in columns]
 
-        print(feature, values)
+        # Truncate the data to relevant sections
+        data = train[:, indexcolumns]
+
+        columnprobs = []
+        values = mstprobs[child]
+        for row in train[:, indexcolumns]:
+            for condition, prob in values.items():
+                if condition == tuple(row):
+                    columnprobs.append(prob)
+                    print(condition, row, prob)
+
+        tableprobs[:, features.index(child)] = columnprobs
+
+    print(tableprobs)
+    print(train)
 
 
 def print_info(results):

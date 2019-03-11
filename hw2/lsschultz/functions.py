@@ -413,9 +413,6 @@ def tan(X_train, y_train, X_test, y_test, meta):
         # Truncate the data to relevant sections
         data = train[:, indexcolumns]
 
-         # The lengths for the features used
-        lengths = typeslength[child]
-
         # Determine the possible combinations of feature items
         a = [types[features.index(i)] for i in columns]
         a = list(itertools.product(*a))
@@ -449,7 +446,7 @@ def tan(X_train, y_train, X_test, y_test, meta):
                 den = len(data[dencondition])
 
             num += 1
-            den += lengths
+            den += typeslength[child]
 
             mstprobs[child][i] = num/den
 
@@ -460,14 +457,11 @@ def tan(X_train, y_train, X_test, y_test, meta):
         items = np.repeat(item, len(y_test))
         test[item] = np.column_stack((X_test, items))
         testclasses[item] = np.column_stack((X_test, items))
-    
+
     for item in classes:
         for child, parents in mst.items():
             columns = [child]+parents
             indexcolumns = [features.index(i) for i in columns]
-
-            # Truncate the data to relevant sections
-            data = test[item][:, indexcolumns]
 
             columnprobs = []
             values = mstprobs[child]

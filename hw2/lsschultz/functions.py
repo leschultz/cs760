@@ -2,8 +2,6 @@
 This script standardizes the data for machine learning.
 '''
 
-from scipy import sparse as sparse
-import scipy.sparse as sparse
 import pandas as pd
 import numpy as np
 

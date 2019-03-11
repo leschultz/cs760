@@ -454,26 +454,89 @@ def tan(X_train, y_train, X_test, y_test, meta):
             mstprobs[child][i] = num/den
 
     # Make a table with all the probabilities
-    tableprobs = train.copy()
-    for child, parents in mst.items():
-        columns = [child]+parents
-        indexcolumns = [features.index(i) for i in columns]
+    test = {}
+    testclasses = {}
+    for item in classes:
+        items = np.repeat(item, len(y_test))
+        test[item] = np.column_stack((X_test, items))
+        testclasses[item] = np.column_stack((X_test, items))
+    
+    for item in classes:
+        for child, parents in mst.items():
+            columns = [child]+parents
+            indexcolumns = [features.index(i) for i in columns]
 
-        # Truncate the data to relevant sections
-        data = train[:, indexcolumns]
+            # Truncate the data to relevant sections
+            data = test[item][:, indexcolumns]
 
-        columnprobs = []
-        values = mstprobs[child]
-        for row in train[:, indexcolumns]:
-            for condition, prob in values.items():
-                if condition == tuple(row):
-                    columnprobs.append(prob)
-                    print(condition, row, prob)
+            columnprobs = []
+            values = mstprobs[child]
+            for row in testclasses[item][:, indexcolumns]:
+                for condition, prob in values.items():
+                    if condition == tuple(row):
+                        columnprobs.append(prob)
 
-        tableprobs[:, features.index(child)] = columnprobs
+            test[item][:, features.index(child)] = columnprobs
 
-    print(tableprobs)
-    print(train)
+    # Multiply the rows together for each of the classes
+    rowprods = {}
+    for item in classes:
+
+        data = test[item][(test[item][:, -1] == item)]
+        data = data[:, :-1].astype(float)
+        rowprods[item] = np.prod(data[:, :-1], axis=1)
+
+    # The prior ocunts for each class
+    priorcounts = {}
+    for item in classes:
+        priorcounts[item] = len(y_train[np.where(y_train == item)])
+
+    # The prior probabilities for each class
+    priorprobs = {}
+    for key, value in priorcounts.items():
+        priorprobs[key] = (value+1)/(n+nclasses)
+
+    # For every row multiply the prior probability for each class (binary)
+    probabilities = {}
+    for item in classes:
+        numerator = priorprobs[item]*rowprods[item]
+        denominator = priorprobs[classes[0]]*rowprods[classes[0]]
+
+        denominator = 0
+        for key in classes:
+            denominator += priorprobs[key]*rowprods[key]
+
+        probabilities[item] = numerator/denominator
+
+    # Choose by the maximum probability
+    maxprobs = probabilities[classes[0]]  # Initial probabilities
+    choice = [classes[0] for i in maxprobs]  # Initial choices
+    for item in range(len(classes[1:])):
+
+        k = 0
+        for i, j in zip(maxprobs, probabilities[classes[item+1]]):
+            if j > i:
+                maxprobs[k] = j
+                choice[k] = classes[item+1]
+            k += 1
+
+    # The number of correct predictions
+    ncorrect = np.sum(choice == y_test)
+
+    structure = []
+    for i, j in mst.items():
+        j = [i]+j
+        structure.append((tuple(j)))
+
+    results = {
+               'tree': structure,
+               'probabilities': maxprobs,
+               'predictions': choice,
+               'actual': y_test,
+               'ncorrect': ncorrect
+               }
+
+    return results
 
 
 def print_info(results):

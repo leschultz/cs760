@@ -43,4 +43,4 @@ if nt == 'n':
 
 if nt == 't':
     probabilities = tan(X_train, y_train, X_test, y_test, meta)
-    #print_info(probabilities)
+    print_info(probabilities)

@@ -61,10 +61,23 @@ X_test_final = np.hstack((
 
 # Turn target data into binary form
 y_train_binary = binarytarget(y_train, meta)
+y_test_binary = binarytarget(y_test, meta)
 
 # Random weights for the bias unit and features
 np.random.seed(0)
 w = np.random.uniform(low=-0.01, high=0.01, size=(1, X_train_cols+1))
 
-# The linear output units
-o = online(X_train_final, y_train_binary, w, args.rate, args.epochs)
+# Apply logistic regression for training
+weights, errors, ncorrect, nincorrect = online(
+                                               X_train_final,
+                                               y_train_binary,
+                                               w,
+                                               args.rate,
+                                               args.epochs
+                                               )
+
+predict(X_test_final, weights)
+
+epochs = [i+1 for i in list(range(args.epochs))]
+
+lr_print(epochs, errors, ncorrect, nincorrect)

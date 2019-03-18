@@ -237,9 +237,12 @@ def epoch(x, y, w, rate):
     outputs:
         w = The updated weights
         sumerrors = The cross-entropy error sum
+        ncorrect = The number of correct predictions
+        nincorrect = The number of incorrect precitions
     '''
 
     sumerrors = 0.0
+    prediction = []
     for xrow, yrow in zip(x, y):
         net = np.sum(xrow*w)  # Sum of feature times weight
         o = 1./(1.+np.exp(-net))  # Sigmoid output
@@ -249,9 +252,19 @@ def epoch(x, y, w, rate):
         deltaw = -rate*gradient
         w = w+deltaw  # Update weights
 
+        if o < 0.5:
+            prediction.append(0)
+
+        else:
+            prediction.append(1)
+
         sumerrors += error
 
-    return w, sumerrors
+    prediction = np.array(prediction)
+    ncorrect = len(y[np.where(prediction == y)])
+    nincorrect = len(y[np.where(prediction != y)])
+
+    return w, sumerrors, ncorrect, nincorrect
 
 
 def online(x, y, w, rate, epochs):
@@ -263,49 +276,77 @@ def online(x, y, w, rate, epochs):
         y = The target feature
         w = The weights for the features
 
+    outputs:
+        weights = The updated weigths after n epochs
+        errors = The cross-entropy error
+        ncorrect = The number of correct predictions
+        nincorrect = The number of incorrect precitions
     '''
 
     weights = []
     errors = []
+    ncorrect = []
+    nincorrect = []
     for i in range(epochs):
-        w, error = epoch(x, y, w, rate)
+        w, error, nc, ni = epoch(x, y, w, rate)
 
         weights.append(w)
         errors.append(error)
+        ncorrect.append(nc)
+        nincorrect.append(ni)
 
-    return weights, errors
+    return weights, errors, ncorrect, nincorrect
 
 
-def print_info(results):
+def predict(x, w):
     '''
-    Print the standard data to a file.
+    Predict the binary class based.
 
     inputs:
-        results = A dictionary containing all predictions and figures
+        x = The test set features
+        w = The weights for the features
+
+    outputs:
+        result = The predictions for logistic regression
     '''
 
-    # Print the structe of the bayes net
-    for i in results['tree']:
-        out = ' '.join(map(str, (i)))
+    result = []
+    activations = []
+    for xrow in x:
+        net = np.sum(xrow*w)  # Sum of feature times weight
+        o = 1./(1.+np.exp(-net))  # Sigmoid output
+
+        activations.append(o)
+        if o < 0.5:
+            result.append(0)
+
+        else:
+            result.append(1)
+
+    '''
+    for i, j in zip(activations, result):
+        print(i, j)'''
+
+    return activations, result
+
+
+def lr_print(epochs, errors, ncorrect, nincorrect):
+    '''
+    Print the standard data of logistic regression.
+
+    inputs:
+        epochs = The number of epochs for training
+        errors = The cross-entropy error
+        ncorrect = The number of correct predictions in training
+        nincorrect = The number of incorrect predictions in training
+
+    outputs:
+        print information to the screen
+    '''
+
+    for i, j, k, l in zip(epochs, errors, ncorrect, nincorrect):
+        j = '{:.12f}'.format(np.round(j, 12))
+        out = ' '.join(map(str, (i, j, k, l)))
         print(out, file=sys.stdout)
-
-    print(file=sys.stdout)
-
-    # Print the data in standard output
-    section = zip(
-                  results['predictions'],
-                  results['actual'],
-                  results['probabilities']
-                  )
-
-    for i, j, k in section:
-        k = '{:.12f}'.format(np.round(k, 12))
-        out = ' '.join(map(str, (i, j, k)))
-        print(out, file=sys.stdout)
-
-    print(file=sys.stdout)
-
-    # Print the number of correct matches
-    print(results['ncorrect'], file=sys.stdout)
 
     print(file=sys.stdout)

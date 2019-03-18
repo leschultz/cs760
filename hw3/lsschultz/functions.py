@@ -188,14 +188,16 @@ def one_hot_encoding(x, meta):
         if meta[count][-1] == 'numeric':
             encoded.append(col)
         else:
+
             codedcol = []
             for item in col:
                 coded = np.zeros(len(meta[count][-1]), dtype=int)
                 coded[meta[count][-1].index(item)] = 1
                 codedcol.append(coded)
 
-            encoded.append(codedcol)
-                
+            for item in np.array(codedcol).T:
+                encoded.append(item)
+
         count += 1
 
     return np.array(encoded).T
@@ -248,8 +250,6 @@ def epoch(x, y, w, rate):
         w = w+deltaw  # Update weights
 
         sumerrors += error
-
-    print(sumerrors)
 
     return w, sumerrors
 

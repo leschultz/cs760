@@ -150,15 +150,8 @@ def testnorm(x, mean, std, meta):
 
         # If the column is numerical
         if meta[count][-1] == 'numeric':
-            col = []
-            for item in column:
-                if std[count] == 0:
-                    std[count] = 1
-
-                val = (item-mean[count])/std[count]
-                col.append(val)
-
-            xnorm.append(col)
+            norm = (column-mean[count])/std[count]
+            xnorm.append(norm)
 
         # If the column is categorical
         else:
@@ -277,25 +270,23 @@ def online(x, y, w, rate, epochs):
         w = The weights for the features
 
     outputs:
-        weights = The updated weigths after n epochs
+        w = The updated weigths after n epochs
         errors = The cross-entropy error
         ncorrect = The number of correct predictions
         nincorrect = The number of incorrect precitions
     '''
 
-    weights = []
     errors = []
     ncorrect = []
     nincorrect = []
     for i in epochs:
         w, error, nc, ni = epoch(x, y, w, rate)
 
-        weights.append(w)
         errors.append(error)
         ncorrect.append(nc)
         nincorrect.append(ni)
 
-    return weights, errors, ncorrect, nincorrect
+    return w, errors, ncorrect, nincorrect
 
 
 def predict(x, y, w, threshold):

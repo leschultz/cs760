@@ -4,7 +4,6 @@
 This script standardizes the data for machine learning.
 '''
 
-import pandas as pd
 import numpy as np
 
 import itertools
@@ -60,7 +59,7 @@ def datasplitter(x):
 
     array = np.array(x, dtype=object)
     data = array[:, :-1]
-    target = np.array([i[-1] for i in x])
+    target = array[:, -1]
 
     return data, target
 
@@ -86,9 +85,9 @@ def standardize(x):
     if std == 0:
         std = 1
 
-    xnorm = [(i-mean)/std for i in x]
+    norm = (x-mean)/std
 
-    return xnorm, mean, std
+    return norm, mean, std
 
 
 def trainnorm(x, meta):
@@ -238,18 +237,18 @@ def epoch(x, y, w, rate):
         sumerrors = The cross-entropy error sum
     '''
 
-    errors = []
+    sumerrors = 0.0
     for xrow, yrow in zip(x, y):
         net = np.sum(xrow*w)  # Sum of feature times weight
         o = 1./(1.+np.exp(-net))  # Sigmoid output
         error = -yrow*np.log(o)-(1.-yrow)*np.log(1.-o)  # Cross-entropy
         sub = o-yrow
         gradient = sub*xrow  # Calculate the error gradient
-        w -= rate*gradient  # Update weights
+        deltaw = -rate*gradient
+        w = w+deltaw  # Update weights
 
-        errors.append(error)
+        sumerrors += error
 
-    sumerrors = np.sum(errors)
     print(sumerrors)
 
     return w, sumerrors

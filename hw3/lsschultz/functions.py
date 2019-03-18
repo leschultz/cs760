@@ -345,7 +345,7 @@ def f1_score(predictions, test):
         f1 = The F1 score
     '''
 
-    tp = len(test[np.where(test == 1)])
+    tp = len(test[np.where((test == 1) & (predictions == 1))])
     fn = len(test[np.where((test == 1) & (predictions == 0))])
     fp = len(test[np.where((test == 0) & (predictions == 1))])
 

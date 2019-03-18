@@ -1,3 +1,5 @@
+#!/usr/bin/env python3.6
+
 '''
 This script standardizes the data for machine learning.
 '''
@@ -78,7 +80,7 @@ def standardize(x):
     '''
 
     mean = np.mean(x)
-    std = np.std(x)
+    std = np.std(x, ddof=0)
 
     # In the case that all values are the same
     if std == 0:
@@ -123,7 +125,9 @@ def trainnorm(x, meta):
 
         count += 1
 
-    return np.array(columns).T, mean, std
+    columns = np.array(columns).T
+
+    return columns, mean, std
 
 
 def testnorm(x, mean, std, meta):
@@ -198,16 +202,79 @@ def one_hot_encoding(x, meta):
     return np.array(encoded).T
 
 
-def cross_entropy(y, o):
+def binarytarget(y, meta):
     '''
-    The function for cross entropy as the loss function.
+    Convert the target data into a binary form. 0 for the first class and
+    1 for the second.
 
     inputs:
-        y = The class label
-        o = The output from the sigmoid function
+        y = The target feature with only two classes
+
     outputs:
-        loss = The loss value for an instance
+        ybinary = The binary representation of y
     '''
+
+    ybinary = []
+    for item in y:
+        if item == meta[-1][-1][0]:
+            ybinary.append(0)
+        if item == meta[-1][-1][1]:
+            ybinary.append(1)
+
+    return np.array(ybinary)
+
+
+def epoch(x, y, w, rate):
+    '''
+    Calculate the sigmoid output units.
+
+    inputs:
+        x = The feature values
+        y = The target feature
+        w = The weights for the features
+
+    outputs:
+        w = The updated weights
+        sumerrors = The cross-entropy error sum
+    '''
+
+    errors = []
+    for xrow, yrow in zip(x, y):
+        net = np.sum(xrow*w)  # Sum of feature times weight
+        o = 1./(1.+np.exp(-net))  # Sigmoid output
+        error = -yrow*np.log(o)-(1.-yrow)*np.log(1.-o)  # Cross-entropy
+        sub = o-yrow
+        gradient = sub*xrow  # Calculate the error gradient
+        w -= rate*gradient  # Update weights
+
+        errors.append(error)
+
+    sumerrors = np.sum(errors)
+    print(sumerrors)
+
+    return w, sumerrors
+
+
+def online(x, y, w, rate, epochs):
+    '''
+    Update weights for a number of epochs.
+
+    inputs:
+        x = The feature values
+        y = The target feature
+        w = The weights for the features
+
+    '''
+
+    weights = []
+    errors = []
+    for i in range(epochs):
+        w, error = epoch(x, y, w, rate)
+
+        weights.append(w)
+        errors.append(error)
+
+    return weights, errors
 
 
 def print_info(results):

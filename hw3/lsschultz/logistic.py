@@ -6,8 +6,6 @@ import numpy as np
 
 import argparse
 
-np.random.seed(0)
-
 parserdescription = 'Neural Network with logistic regression'
 
 parser = argparse.ArgumentParser(
@@ -36,12 +34,8 @@ parser.add_argument(
 
 args = parser.parse_args()
 
-
 # Load the training and testing data
 X_train, y_train, X_test, y_test, meta = load(args.train, args.test)
-
-# The number of rows and columns for training data excluding the classes
-rows, cols = X_train.shape
 
 # Normalize the numeric features
 X_train_norm, mean, std = trainnorm(X_train, meta)
@@ -51,9 +45,26 @@ X_test_norm = testnorm(X_test, mean, std, meta)
 X_train_norm_encoded = one_hot_encoding(X_train_norm, meta)
 X_test_norm_encoded = one_hot_encoding(X_test_norm, meta)
 
-# Include the bias unit of 1 at index 0
-bias = np.ones((rows, 1), dtype=int)
-X_train_final = np.hstack((bias, X_train_norm_encoded))
+# The number of rows and columns for training data excluding the classes
+X_train_rows, X_train_cols = X_train_norm_encoded.shape
+X_test_rows, X_test_cols = X_test_norm_encoded.shape
 
-# Random weights for features and bias unit
-w = np.random.uniform(low=-0.01, high=0.01, size=(1, cols+1))
+# Include the bias unit of 1 at index 0
+X_train_final = np.hstack((
+                           np.ones((X_train_rows, 1), dtype=int),
+                           X_train_norm_encoded
+                           ))
+X_test_final = np.hstack((
+                          np.ones((X_test_rows, 1), dtype=int),
+                          X_test_norm_encoded
+                          ))
+
+# Turn target data into binary form
+y_train_binary = binarytarget(y_train, meta)
+
+# Random weights for the bias unit and features
+np.random.seed(0)
+w = np.random.uniform(low=-0.01, high=0.01, size=(1, X_train_cols+1))
+
+# The linear output units
+o = online(X_train_final, y_train_binary, w, args.rate, args.epochs)

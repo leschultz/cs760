@@ -287,7 +287,7 @@ def online(x, y, w, rate, epochs):
     errors = []
     ncorrect = []
     nincorrect = []
-    for i in range(epochs):
+    for i in epochs:
         w, error, nc, ni = epoch(x, y, w, rate)
 
         weights.append(w)
@@ -298,16 +298,19 @@ def online(x, y, w, rate, epochs):
     return weights, errors, ncorrect, nincorrect
 
 
-def predict(x, w):
+def predict(x, y, w, threshold):
     '''
     Predict the binary class based.
 
     inputs:
         x = The test set features
+        y = The test set target feature
         w = The weights for the features
+        threshold = The sigmoid threshold for binary classification
 
     outputs:
         result = The predictions for logistic regression
+        activations = The activation from the sigmoid
     '''
 
     result = []
@@ -317,20 +320,55 @@ def predict(x, w):
         o = 1./(1.+np.exp(-net))  # Sigmoid output
 
         activations.append(o)
-        if o < 0.5:
+        if o < threshold:
             result.append(0)
 
         else:
             result.append(1)
 
+    result = np.array(result)
+    ncorrect = len(y[np.where(result == y)])
+    nincorrect = len(y[np.where(result != y)])
+
+    return result, activations, ncorrect, nincorrect
+
+
+def f1_score(predictions, test):
     '''
-    for i, j in zip(activations, result):
-        print(i, j)'''
+    Calculate the F1 score.
 
-    return activations, result
+    inputs:
+        predictions = The predictedions
+        test = The true values for the target feature
+
+    outputs:
+        f1 = The F1 score
+    '''
+
+    tp = len(test[np.where(test == 1)])
+    fn = len(test[np.where((test == 1) & (predictions == 0))])
+    fp = len(test[np.where((test == 0) & (predictions == 1))])
+
+    recall = tp/(tp+fn)
+    precision = tp/(tp+fp)
+
+    f1 = 2.0*precision*recall/(precision+recall)
+
+    return f1
 
 
-def lr_print(epochs, errors, ncorrect, nincorrect):
+def lr_print(
+             epochs,
+             errors,
+             ncorrect,
+             nincorrect,
+             activations,
+             result,
+             test,
+             testcorrect,
+             testincorrect,
+             f1
+             ):
     '''
     Print the standard data of logistic regression.
 
@@ -339,6 +377,11 @@ def lr_print(epochs, errors, ncorrect, nincorrect):
         errors = The cross-entropy error
         ncorrect = The number of correct predictions in training
         nincorrect = The number of incorrect predictions in training
+        activations = The activations from the sigmoid function
+        test = The actual values of the target feature from the test set
+        testcorrect = The number of correct predictions
+        testincorrect = The number of incorrect predictions
+        f1 = The F1 score
 
     outputs:
         print information to the screen
@@ -349,4 +392,13 @@ def lr_print(epochs, errors, ncorrect, nincorrect):
         out = ' '.join(map(str, (i, j, k, l)))
         print(out, file=sys.stdout)
 
-    print(file=sys.stdout)
+    for i, j, k in zip(activations, result, test):
+        i = '{:.12f}'.format(np.round(i, 12))
+        out = ' '.join(map(str, (i, j, k)))
+        print(out, file=sys.stdout)
+
+    out = ' '.join(map(str, (testcorrect, testincorrect)))
+    print(out, file=sys.stdout)
+
+    f1 = '{:.12f}'.format(np.round(f1, 12))
+    print(f1, file=sys.stdout)

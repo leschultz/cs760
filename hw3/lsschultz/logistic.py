@@ -68,16 +68,34 @@ np.random.seed(0)
 w = np.random.uniform(low=-0.01, high=0.01, size=(1, X_train_cols+1))
 
 # Apply logistic regression for training
+epochs = [i+1 for i in list(range(args.epochs))]
 weights, errors, ncorrect, nincorrect = online(
                                                X_train_final,
                                                y_train_binary,
                                                w,
                                                args.rate,
-                                               args.epochs
+                                               epochs
                                                )
 
-predict(X_test_final, weights)
+threshold = 0.5
+result, activations, testcorrect, testincorrect = predict(
+                                                          X_test_final,
+                                                          y_test_binary,
+                                                          weights,
+                                                          threshold
+                                                          )
 
-epochs = [i+1 for i in list(range(args.epochs))]
+f1 = f1_score(result, y_test_binary)
 
-lr_print(epochs, errors, ncorrect, nincorrect)
+lr_print(
+         epochs,
+         errors,
+         ncorrect,
+         nincorrect,
+         activations,
+         result,
+         y_test_binary,
+         testcorrect,
+         testincorrect,
+         f1
+         )

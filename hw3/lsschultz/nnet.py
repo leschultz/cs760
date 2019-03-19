@@ -75,8 +75,17 @@ w_h_o = np.random.uniform(low=-0.01, high=0.01, size=(1, args.hidden+1))
 
 # Apply logistic regression for training
 epochs = [i+1 for i in list(range(args.epochs))]
+nhidden = [i+1 for i in list(range(args.hidden))]
 
-backpropagation(X_train_final, y_train_binary)
+backpropagation(
+                X_train_final,
+                y_train_binary,
+                nhidden,
+                w_i_h,
+                w_h_o,
+                args.rate,
+                epochs
+                )
 
 '''
 weights, errors, ncorrect, nincorrect = online(

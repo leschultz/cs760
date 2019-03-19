@@ -348,29 +348,6 @@ def f1_score(predictions, test):
     return f1
 
 
-def backpropagation(x, y):
-    '''
-    Implement back propagation on a Neural Net.
-
-    inputs:
-        x = The training features
-        y = The training target feature
-
-    outputs:
-        
-    '''
-
-    # Calculate the error fo the output units
-
-    # Calculate the error for the hidden units
-
-    # Determine updates for weights going to the output units
-
-    # Determine upddates for weights to hidden units using hidden-unit erros
-
-    return 1
-
-
 def lr_print(
              epochs,
              errors,
@@ -416,3 +393,47 @@ def lr_print(
 
     f1 = '{:.12f}'.format(np.round(f1, 12))
     print(f1, file=sys.stdout)
+
+
+def backpropagation(x, y, nhidden, wih, who, rate, epochs):
+    '''
+    Implement back propagation on a Neural Net.
+
+    inputs:
+        x = The training features
+        y = The training target feature
+        nhiddent = The number of hidden units as a list
+        whi = Weight vector from the input units to the hidden units
+        who = Weight vector from the hidden units to the output units
+        rate = The learning rate
+        epochs = The number of epochs
+
+    outputs:
+        
+    '''
+
+    # For each of the hidden units calculate the output of the sigmoid
+    for xrow, yrow in zip(x[:1], y[:1]):
+        outputs = []
+        for unitweight in wih:
+            net = np.sum(xrow*unitweight)  # Sum of feature times weight
+            o = 1./(1.+np.exp(-net))  # Sigmoid output
+            outputs.append(o)
+
+        outputs = [1]+outputs  # Add a bias unit
+        outputs = np.array(outputs)
+        outnet = np.sum(outputs*who)
+        out = 1./(1.+np.exp(-outnet))
+
+        delta = yrow-out  # Calculate the error for the output units
+        print(delta)
+        
+    # Calculate the error for the output units
+
+    # Calculate the error for the hidden units
+
+    # Determine updates for weights going to the output units
+
+    # Determine upddates for weights to hidden units using hidden-unit erros
+
+    return 1

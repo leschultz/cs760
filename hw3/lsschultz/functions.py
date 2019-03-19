@@ -348,6 +348,29 @@ def f1_score(predictions, test):
     return f1
 
 
+def backpropagation(x, y):
+    '''
+    Implement back propagation on a Neural Net.
+
+    inputs:
+        x = The training features
+        y = The training target feature
+
+    outputs:
+        
+    '''
+
+    # Calculate the error fo the output units
+
+    # Calculate the error for the hidden units
+
+    # Determine updates for weights going to the output units
+
+    # Determine upddates for weights to hidden units using hidden-unit erros
+
+    return 1
+
+
 def lr_print(
              epochs,
              errors,

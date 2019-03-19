@@ -415,22 +415,24 @@ def backpropagation(x, y, nhidden, wih, who, rate, epochs):
     # For each of the hidden units calculate the output of the sigmoid
     for xrow, yrow in zip(x[:1], y[:1]):
         outputs = []
+        deltahidden = []
         for unitweight in wih:
             net = np.sum(xrow*unitweight)  # Sum of feature times weight
             o = 1./(1.+np.exp(-net))  # Sigmoid output
+            deltah = o*(1.-o)*net  # Calculate the error for the hidden units
+
             outputs.append(o)
+            deltahidden.append(deltah)
 
         outputs = [1]+outputs  # Add a bias unit
         outputs = np.array(outputs)
+
+        deltahidden = np.array(deltahidden)
+
         outnet = np.sum(outputs*who)
         out = 1./(1.+np.exp(-outnet))
 
         delta = yrow-out  # Calculate the error for the output units
-        print(delta)
-        
-    # Calculate the error for the output units
-
-    # Calculate the error for the hidden units
 
     # Determine updates for weights going to the output units
 

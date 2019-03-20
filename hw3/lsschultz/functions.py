@@ -218,7 +218,7 @@ def binarytarget(y, meta):
     return np.array(ybinary)
 
 
-def epoch(x, y, w, rate):
+def epoch(x, y, w, rate, threshold=0.5):
     '''
     Calculate the sigmoid output units.
 
@@ -245,7 +245,7 @@ def epoch(x, y, w, rate):
         deltaw = -rate*gradient
         w = w+deltaw  # Update weights
 
-        if o < 0.5:
+        if o < threshold:
             prediction.append(0)
 
         else:
@@ -395,7 +395,7 @@ def lr_print(
     print(f1, file=sys.stdout)
 
 
-def backpropagation(x, y, nhidden, wih, who, rate, epochs):
+def backpropagation(x, y, nhidden, wih, who, rate, epochs, threshold=0.5):
     '''
     Implement back propagation on a Neural Net.
 
@@ -413,29 +413,56 @@ def backpropagation(x, y, nhidden, wih, who, rate, epochs):
     '''
 
     # For each of the hidden units calculate the output of the sigmoid
-    for xrow, yrow in zip(x[:1], y[:1]):
+    sumerrors = 0.0
+    prediction = []
+    for xrow, yrow in zip(x, y):
         outputs = []
-        deltahidden = []
         for unitweight in wih:
             net = np.sum(xrow*unitweight)  # Sum of feature times weight
             o = 1./(1.+np.exp(-net))  # Sigmoid output
-            deltah = o*(1.-o)*net  # Calculate the error for the hidden units
 
             outputs.append(o)
-            deltahidden.append(deltah)
 
         outputs = [1]+outputs  # Add a bias unit
         outputs = np.array(outputs)
 
-        deltahidden = np.array(deltahidden)
-
         outnet = np.sum(outputs*who)
         out = 1./(1.+np.exp(-outnet))
 
-        delta = yrow-out  # Calculate the error for the output units
+        deltao = yrow-out  # Calculate the error for the output units
 
-    # Determine updates for weights going to the output units
+        error = -yrow*np.log(out)-(1.-yrow)*np.log(1.-out)  # Cross-entropy
+        sumerrors += error
 
-    # Determine upddates for weights to hidden units using hidden-unit erros
+        if out < threshold:
+            prediction.append(0)
+
+        else:
+            prediction.append(1)
+
+        # Calculate the error for the hidden units
+        deltah = outputs*(1-outputs)*who*deltao
+
+        # Determine updates for weights going to the output units
+        dwo = rate*deltao*who
+        who += dwo
+
+        # Determine upddates for weights to hidden units
+        deltah = np.array(np.delete(deltah, 0))
+
+        count = 0
+        for unitweight in wih:
+            dwi = unitweight*deltah[count]
+            wih[count, :] = wih[count, :]+dwi
+
+            count += 1
+
+    prediction = np.array(prediction)
+    ncorrect = len(y[np.where(prediction == y)])
+    nincorrect = len(y[np.where(prediction != y)])
+
+    print(who)
+    print(wih)
+    print(sumerrors, ncorrect, nincorrect)
 
     return 1

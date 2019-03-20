@@ -403,7 +403,7 @@ def backpropagation(x, y, nhidden, wih, who, rate, epochs, threshold=0.5):
         x = The training features
         y = The training target feature
         nhiddent = The number of hidden units as a list
-        whi = Weight vector from the input units to the hidden units
+        wih = Weight vector from the input units to the hidden units
         who = Weight vector from the hidden units to the output units
         rate = The learning rate
         epochs = The number of epochs
@@ -429,8 +429,6 @@ def backpropagation(x, y, nhidden, wih, who, rate, epochs, threshold=0.5):
         outnet = np.sum(outputs*who)
         out = 1./(1.+np.exp(-outnet))
 
-        deltao = yrow-out  # Calculate the error for the output units
-
         error = -yrow*np.log(out)-(1.-yrow)*np.log(1.-out)  # Cross-entropy
         sumerrors += error
 
@@ -440,29 +438,38 @@ def backpropagation(x, y, nhidden, wih, who, rate, epochs, threshold=0.5):
         else:
             prediction.append(1)
 
+        deltao = yrow-out  # Calculate the error for the output units
+
         # Calculate the error for the hidden units
         deltah = outputs*(1-outputs)*who*deltao
 
         # Determine updates for weights going to the output units
-        dwo = rate*deltao*who
+        dwo = rate*deltao*outputs
         who += dwo
 
         # Determine upddates for weights to hidden units
         deltah = np.array(np.delete(deltah, 0))
 
+        '''
         count = 0
         for unitweight in wih:
-            dwi = unitweight*deltah[count]
+            dwi = rate*unitweight*deltah[count]
             wih[count, :] = wih[count, :]+dwi
 
+            count += 1
+
+        '''
+
+        count = 0
+        for hidden in deltah:
+            dwi = rate*hidden*xrow
+            wih[count, :] = wih[count, :]+dwi
             count += 1
 
     prediction = np.array(prediction)
     ncorrect = len(y[np.where(prediction == y)])
     nincorrect = len(y[np.where(prediction != y)])
 
-    print(who)
-    print(wih)
     print(sumerrors, ncorrect, nincorrect)
 
-    return 1
+    return wih, who, sumerrors, ncorrect, nincorrect

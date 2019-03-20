@@ -94,7 +94,7 @@ result, activations, testcorrect, testincorrect = nnpredict(
                                                             w_h_o,
                                                             threshold
                                                             )
-print(result)
+
 f1 = f1_score(result, y_test_binary)
 
 lr_print(

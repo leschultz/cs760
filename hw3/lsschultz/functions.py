@@ -538,7 +538,7 @@ def nnpredict(x, y, wih, who, threshold):
         outnet = np.sum(outputs*who)
         out = 1./(1.+np.exp(-outnet))
 
-        activations.append(o)
+        activations.append(out)
         if out < threshold:
             result.append(0)
 

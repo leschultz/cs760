@@ -395,7 +395,7 @@ def lr_print(
     print(f1, file=sys.stdout)
 
 
-def backpropagation(x, y, nhidden, wih, who, rate, epochs, threshold=0.5):
+def backpropagation(x, y, nhidden, wih, who, rate, threshold=0.5):
     '''
     Implement back propagation on a Neural Net.
 
@@ -406,10 +406,13 @@ def backpropagation(x, y, nhidden, wih, who, rate, epochs, threshold=0.5):
         wih = Weight vector from the input units to the hidden units
         who = Weight vector from the hidden units to the output units
         rate = The learning rate
-        epochs = The number of epochs
 
     outputs:
-        
+        wih = The updated weigths of wih after n epochs
+        who = The updated weigths of who after n epochs
+        errors = The cross-entropy error
+        ncorrect = The number of correct predictions
+        nincorrect = The number of incorrect precitions        
     '''
 
     # For each of the hidden units calculate the output of the sigmoid
@@ -450,16 +453,6 @@ def backpropagation(x, y, nhidden, wih, who, rate, epochs, threshold=0.5):
         # Determine upddates for weights to hidden units
         deltah = np.array(np.delete(deltah, 0))
 
-        '''
-        count = 0
-        for unitweight in wih:
-            dwi = rate*unitweight*deltah[count]
-            wih[count, :] = wih[count, :]+dwi
-
-            count += 1
-
-        '''
-
         count = 0
         for hidden in deltah:
             dwi = rate*hidden*xrow
@@ -470,6 +463,45 @@ def backpropagation(x, y, nhidden, wih, who, rate, epochs, threshold=0.5):
     ncorrect = len(y[np.where(prediction == y)])
     nincorrect = len(y[np.where(prediction != y)])
 
-    print(sumerrors, ncorrect, nincorrect)
-
     return wih, who, sumerrors, ncorrect, nincorrect
+
+def nnepoch(x, y, nhidden, wih, who, rate, epochs, threshold=0.5):
+    '''
+    Calculate the sigmoid output units.
+
+    inputs:
+        x = The training features
+        y = The training target feature
+        nhiddent = The number of hidden units as a list
+        wih = Weight vector from the input units to the hidden units
+        who = Weight vector from the hidden units to the output units
+        rate = The learning rate
+        epochs = The number of epochs
+
+    outputs:
+        wih = The updated weigths of wih after n epochs
+        who = The updated weigths of who after n epochs
+        errors = The cross-entropy error
+        ncorrect = The number of correct predictions
+        nincorrect = The number of incorrect precitions
+    '''
+
+    errors = []
+    ncorrect = []
+    nincorrect = []
+    for i in epochs:
+        wih, who, error, nc, ni = backpropagation(
+                                                  x,
+                                                  y,
+                                                  nhidden,
+                                                  wih,
+                                                  who,
+                                                  rate,
+                                                  threshold=0.5
+                                                  )
+
+        errors.append(error)
+        ncorrect.append(nc)
+        nincorrect.append(ni)
+
+    return wih, who, errors, ncorrect, nincorrect

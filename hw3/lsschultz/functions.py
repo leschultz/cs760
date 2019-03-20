@@ -506,6 +506,7 @@ def nnepoch(x, y, nhidden, wih, who, rate, epochs, threshold=0.5):
 
     return wih, who, errors, ncorrect, nincorrect
 
+
 def nnpredict(x, y, wih, who, threshold):
     '''
     Predict the binary class based.

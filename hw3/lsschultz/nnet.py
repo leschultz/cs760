@@ -86,18 +86,15 @@ w_i_h, w_h_o, errors, ncorrect, nincorrect = nnepoch(
                                                      args.rate,
                                                      epochs
                                                      )
-
-
-'''
-
 threshold = 0.5
-result, activations, testcorrect, testincorrect = predict(
-                                                          X_test_final,
-                                                          y_test_binary,
-                                                          weights,
-                                                          threshold
-                                                          )
-
+result, activations, testcorrect, testincorrect = nnpredict(
+                                                            X_test_final,
+                                                            y_test_binary,
+                                                            w_i_h,
+                                                            w_h_o,
+                                                            threshold
+                                                            )
+print(result)
 f1 = f1_score(result, y_test_binary)
 
 lr_print(
@@ -112,4 +109,3 @@ lr_print(
          testincorrect,
          f1
          )
-'''

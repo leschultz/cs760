@@ -505,3 +505,48 @@ def nnepoch(x, y, nhidden, wih, who, rate, epochs, threshold=0.5):
         nincorrect.append(ni)
 
     return wih, who, errors, ncorrect, nincorrect
+
+def nnpredict(x, y, wih, who, threshold):
+    '''
+    Predict the binary class based.
+
+    inputs:
+        x = The test set features
+        y = The test set target feature
+        wih = Weight vector from the input units to the hidden units
+        who = Weight vector from the hidden units to the output units
+        threshold = The sigmoid threshold for binary classification
+
+    outputs:
+        result = The predictions for logistic regression
+        activations = The activation from the sigmoid
+    '''
+
+    result = []
+    activations = []
+    for xrow in x:
+        outputs = []
+        for unitweight in wih:
+            net = np.sum(xrow*unitweight)  # Sum of feature times weight
+            o = 1./(1.+np.exp(-net))  # Sigmoid output
+
+            outputs.append(o)
+
+        outputs = [1]+outputs  # Add a bias unit
+        outputs = np.array(outputs)
+
+        outnet = np.sum(outputs*who)
+        out = 1./(1.+np.exp(-outnet))
+
+        activations.append(o)
+        if out < threshold:
+            result.append(0)
+
+        else:
+            result.append(1)
+
+    result = np.array(result)
+    ncorrect = len(y[np.where(result == y)])
+    nincorrect = len(y[np.where(result != y)])
+
+    return result, activations, ncorrect, nincorrect

@@ -80,6 +80,8 @@ w = np.random.uniform(low=-0.01, high=0.01, size=(1, X_train_cols+1))
 errors = []
 ncorrect = []
 nincorrect = []
+f1train = []
+f1test = []
 for i in epochs:
     w, error, nc, ni = epoch(
                              X_train_final,
@@ -100,19 +102,36 @@ for i in epochs:
                                                               )
 
     f1 = f1_score(result, y_test_binary)
+    f1test.append(f1)
 
-lr_print(
-         epochs,
-         errors,
-         ncorrect,
-         nincorrect,
-         activations,
-         result,
-         y_test_binary,
-         testcorrect,
-         testincorrect,
-         f1
-         )
+    result, activations, testcorrect, testincorrect = predict(
+                                                              X_train_final,
+                                                              y_train_binary,
+                                                              w,
+                                                              threshold
+                                                              )
+
+    f1 = f1_score(result, y_train_binary)
+    f1train.append(f1)
+
+fig, ax = pl.subplots()
+
+legend = [
+          'max_epoch=20',
+          'learning rate=0.01',
+          'number of hidden units=10',
+          'dataset=magic'
+          ]
+
+ax.plot(epochs, f1test,label='testing set')
+ax.plot(epochs, f1train, label='training set')
+ax.grid()
+ax.legend()
+ax.set_xlabel('Nubmer of Epochs\n'+str(legend))
+ax.set_ylabel('F1 Score')
+
+fig.tight_layout()
+pl.savefig('Logistic_Regression.pdf')
 
 # Random weights for the bias unit and features
 np.random.seed(0)
@@ -125,6 +144,8 @@ nhidden = [i+1 for i in list(range(args.hidden))]
 errors = []
 ncorrect = []
 nincorrect = []
+f1train = []
+f1test = []
 for i in epochs:
     w_i_h, w_h_o, error, nc, ni = backpropagation(
                                                   X_train_final,
@@ -147,17 +168,35 @@ for i in epochs:
                                                                 threshold
                                                                 )
 
-f1 = f1_score(result, y_test_binary)
+    f1 = f1_score(result, y_test_binary)
+    f1test.append(f1)
 
-lr_print(
-         epochs,
-         errors,
-         ncorrect,
-         nincorrect,
-         activations,
-         result,
-         y_test_binary,
-         testcorrect,
-         testincorrect,
-         f1
-         )
+    result, activations, testcorrect, testincorrect = nnpredict(
+                                                                X_train_final,
+                                                                y_train_binary,
+                                                                w_i_h,
+                                                                w_h_o,
+                                                                threshold
+                                                                )
+
+    f1 = f1_score(result, y_train_binary)
+    f1train.append(f1)
+
+fig, ax = pl.subplots()
+
+legend = [
+          'max_epoch=20',
+          'learning rate=0.01',
+          'number of hidden units=10',
+          'dataset=magic'
+          ]
+
+ax.plot(epochs, f1test,label='testing set')
+ax.plot(epochs, f1train, label='training set')
+ax.grid()
+ax.legend()
+ax.set_xlabel('Nubmer of Epochs\n'+str(legend))
+ax.set_ylabel('F1 Score')
+
+fig.tight_layout()
+pl.savefig('NNet.pdf')

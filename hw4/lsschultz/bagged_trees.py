@@ -58,8 +58,8 @@ for tree in range(argsntrees):
     y_pred = predictor.predict(X_test)
 
     indices.append(choice)
-    preds.append(y_pred)
-    probs.append(y_prob)
+    preds.append(y_pred.astype(np.object))
+    probs.append(y_prob.astype(np.object))
 
 indices = np.column_stack(indices)
 
@@ -69,6 +69,8 @@ for i in combined:
     prediction = test_meta[-1][1][i]
     predict.append(prediction)
 
+predict = np.array(predict)
+
 accuracy = len(y_test[predict == y_test])/len(y_test)
 
 for tree in indices:
@@ -77,8 +79,8 @@ for tree in indices:
 
 print(file=sys.stdout)
 
-preds.append(predict)
-preds.append(y_test)
+preds.append(predict.astype(np.object))
+preds.append(y_test.astype(np.object))
 preds = np.column_stack(preds)
 for tree in preds:
     out = ','.join(map(str, tree))

@@ -62,7 +62,6 @@ for tree in range(argsntrees):
     probs.append(y_prob)
 
 indices = np.column_stack(indices)
-probs = np.array(probs)
 
 combined = np.apply_along_axis(np.argmax, 1, np.sum(np.array(probs), axis=0))
 predict = []

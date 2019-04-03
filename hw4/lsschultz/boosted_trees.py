@@ -86,8 +86,15 @@ predict = np.array(predict)
 accuracy = len(y_test[predict == y_test])/len(y_test)
 
 for tree in weights:
+    tree = ['{}'.format(np.round(i, 12)) for i in tree]
     out = ','.join(map(str, tree))
     print(out, file=sys.stdout)
+
+print(file=sys.stdout)
+
+treeweights =['{}'.format(np.round(i, 12)) for i in treeweights]
+out = ','.join(map(str, treeweights))
+print(out, file=sys.stdout)
 
 print(file=sys.stdout)
 

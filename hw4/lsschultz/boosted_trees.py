@@ -31,6 +31,34 @@ y_train = train_data[:, -1]
 X_test = test_data[:, :-1]
 y_test = test_data[:, -1]
 
+nclasses = len(train_meta[-1][-1])
+
+# Initialize instance weights
+w = np.ones(X_train.shape[0])/np.arange(1, X_train.shape[0]+1)
+
+t = 0
+while t < argsmaxtrees:
+
+    # Train model
+    predictor = dt.DecisionTree()
+    predictor.fit(
+                  X_train,
+                  y_train,
+                  train_meta,
+                  max_depth=argsmax_depth,
+                  instance_weights=w
+                  )
+
+    # Predict on training set
+    y_pred = predictor.predict(X_train)
+
+    # Compute the error
+    e = np.sum(w*(y_pred != y_train))/np.sum(w)
+
+    # Compute alpha
+    alpha = np.log((1-e)/e)+np.log(nclasses-1)
+    t += 1
+
 indices = []
 probs = []
 preds = []
@@ -63,6 +91,8 @@ for tree in range(argsmaxtrees):
 
 indices = np.column_stack(indices)
 
+
+'''
 combined = np.apply_along_axis(np.argmax, 1, np.sum(np.array(probs), axis=0))
 predict = []
 for i in combined:
@@ -92,3 +122,4 @@ print(
       '{}'.format(np.round(accuracy, 16)),
       file=sys.stdout
       )
+'''

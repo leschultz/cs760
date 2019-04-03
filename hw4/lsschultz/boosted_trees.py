@@ -39,6 +39,9 @@ preds = []
 probs = []
 for tree in range(argsmax_trees):
 
+    # Normalize weights
+    w = w/sum(w)
+
     weights.append(w)
 
     # Train model

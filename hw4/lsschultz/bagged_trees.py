@@ -89,6 +89,6 @@ for tree in preds:
 print(file=sys.stdout)
 
 print(
-      '{}'.format(np.round(accuracy, 12)),
+      '{:.12f}'.format(np.round(accuracy, 12)),
       file=sys.stdout
       )

@@ -7,10 +7,7 @@ import numpy as np
 import json
 import sys
 
-if __name__ == "__main__":
-    np.random.seed(0)
-
-argsmaxtrees = int(sys.argv[1])
+argsmax_trees = int(sys.argv[1])
 argsmax_depth = int(sys.argv[2])
 argstrain = sys.argv[3]
 argstest = sys.argv[4]
@@ -34,10 +31,15 @@ y_test = test_data[:, -1]
 nclasses = len(train_meta[-1][-1])
 
 # Initialize instance weights
-w = np.ones(X_train.shape[0])/np.arange(1, X_train.shape[0]+1)
+w = np.ones(X_train.shape[0])/X_train.shape[0]
 
-t = 0
-while t < argsmaxtrees:
+weights = []
+treeweights = []
+preds = []
+probs = []
+for tree in range(argsmax_trees):
+
+    weights.append(w)
 
     # Train model
     predictor = dt.DecisionTree()
@@ -52,47 +54,27 @@ while t < argsmaxtrees:
     # Predict on training set
     y_pred = predictor.predict(X_train)
 
+    # Find matching values
+    I = (y_pred != y_train)
+
     # Compute the error
-    e = np.sum(w*(y_pred != y_train))/np.sum(w)
+    e = sum(w*I)/sum(w)
+
+    if e >= 1-1/nclasses:
+        break
 
     # Compute alpha
     alpha = np.log((1-e)/e)+np.log(nclasses-1)
-    t += 1
 
-indices = []
-probs = []
-preds = []
-for tree in range(argsmaxtrees):
+    # Update weights
+    w = w*np.exp(alpha*I)
 
-    choice = np.random.choice(
-                              X_train.shape[0],
-                              X_train.shape[0],
-                              )
+    preds.append(predictor.predict(X_test))
+    treeweights.append(alpha)
+    probs.append(predictor.predict(X_test, prob=True))
 
-    X_train_strap = X_train[choice, :]
-    y_train_strap = y_train[choice]
+weights = np.column_stack(weights)
 
-    # Train model
-    predictor = dt.DecisionTree()
-    predictor.fit(
-                  X_train_strap,
-                  y_train_strap,
-                  train_meta,
-                  max_depth=argsmax_depth
-                  )
-
-    # Predict
-    y_prob = predictor.predict(X_test, prob=True)
-    y_pred = predictor.predict(X_test)
-
-    indices.append(choice)
-    preds.append(y_pred.astype(np.object))
-    probs.append(y_prob.astype(np.object))
-
-indices = np.column_stack(indices)
-
-
-'''
 combined = np.apply_along_axis(np.argmax, 1, np.sum(np.array(probs), axis=0))
 predict = []
 for i in combined:
@@ -103,7 +85,7 @@ predict = np.array(predict)
 
 accuracy = len(y_test[predict == y_test])/len(y_test)
 
-for tree in indices:
+for tree in weights:
     out = ','.join(map(str, tree))
     print(out, file=sys.stdout)
 
@@ -122,4 +104,3 @@ print(
       '{}'.format(np.round(accuracy, 16)),
       file=sys.stdout
       )
-'''

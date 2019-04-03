@@ -74,15 +74,23 @@ for tree in range(argsmax_trees):
 
     preds.append(predictor.predict(X_test))
     treeweights.append(alpha)
-    probs.append(predictor.predict(X_test, prob=True))
+    probs.append(predictor.predict(X_test, prob=True)*alpha)
 
 weights = np.column_stack(weights)
+probs = np.array(probs)
 
-combined = np.apply_along_axis(np.argmax, 1, np.sum(np.array(probs), axis=0))
 predict = []
-for i in combined:
-    prediction = test_meta[-1][1][i]
-    predict.append(prediction)
+for row in np.array(preds).T:
+
+    count = 0
+    votes = {}
+    for item in train_meta[-1][-1]:
+        votes[item] = sum([(i==item)*j for i, j in zip(row, treeweights)])
+
+        count += 1
+
+    voteindex = max(votes, key=votes.get)
+    predict.append(voteindex)
 
 predict = np.array(predict)
 

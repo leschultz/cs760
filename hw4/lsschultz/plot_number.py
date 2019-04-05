@@ -85,7 +85,7 @@ axboost.plot(dfboost['depth'], dfboost[3], label='max depth: '+str(3))
 axboost.plot(dfboost['depth'], dfboost[5], label='max depth: '+str(5))
 axboost.plot(dfboost['depth'], dfboost[10], label='max depth: '+str(10))
 
-axboost.set_xlabel('Maximum Tree Depth')
+axboost.set_xlabel('Maximum Number of Trees')
 axboost.set_ylabel('Accuracy')
 axboost.set_title('Boosting')
 axboost.legend()

@@ -87,9 +87,9 @@ figbag.savefig(name_bag)
 
 # Boosting
 figboost, axboost = pl.subplots()
-axboost.plot(dfbag['depth'], dfbag[3], label='max trees: '+str(3))
-axboost.plot(dfbag['depth'], dfbag[4], label='max trees: '+str(4))
-axboost.plot(dfbag['depth'], dfbag[5], label='max trees: '+str(5))
+axboost.plot(dfboost['depth'], dfboost[3], label='max trees: '+str(3))
+axboost.plot(dfboost['depth'], dfboost[4], label='max trees: '+str(4))
+axboost.plot(dfboost['depth'], dfboost[5], label='max trees: '+str(5))
 
 axboost.set_xlabel('Maximum Tree Depth')
 axboost.set_ylabel('Accuracy')

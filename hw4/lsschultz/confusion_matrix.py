@@ -29,6 +29,8 @@ y_train = train_data[:, -1]
 X_test = test_data[:, :-1]
 y_test = test_data[:, -1]
 
+nclasses = len(train_meta[-1][-1])
+
 # Run bagged-trees
 if method == 'bag':
 
@@ -74,32 +76,8 @@ if method == 'bag':
 
     predict = np.array(predict)
 
-    accuracy = len(y_test[predict == y_test])/len(y_test)
-
-    for tree in indices:
-        out = ','.join(map(str, tree))
-        print(out, file=sys.stdout)
-
-    print(file=sys.stdout)
-
-    preds.append(predict.astype(np.object))
-    preds.append(y_test.astype(np.object))
-    preds = np.column_stack(preds)
-    for tree in preds:
-        out = ','.join(map(str, tree))
-        print(out, file=sys.stdout)
-
-    print(file=sys.stdout)
-
-    print(
-          '{:.12f}'.format(np.round(accuracy, 12)),
-          file=sys.stdout
-          )
-
 # Run boosted-trees
 if method == 'boost':
-
-    nclasses = len(train_meta[-1][-1])
 
     # Initialize instance weights
     w = np.ones(X_train.shape[0])/X_train.shape[0]
@@ -165,31 +143,13 @@ if method == 'boost':
 
     predict = np.array(predict)
 
-    accuracy = len(y_test[predict == y_test])/len(y_test)
+cm = np.zeros((nclasses, nclasses), dtype=int)
+for i, j in zip(y_test, predict):
+    true_index = train_meta[-1][-1].index(i)
+    pred_index = train_meta[-1][-1].index(j)
 
-    for tree in weights:
-        tree = ['{:.12f}'.format(np.round(i, 12)) for i in tree]
-        out = ','.join(map(str, tree))
-        print(out, file=sys.stdout)
+    cm[pred_index, true_index] += 1
 
-    print(file=sys.stdout)
-
-    treeweights =['{:.12f}'.format(np.round(i, 12)) for i in treeweights]
-    out = ','.join(map(str, treeweights))
+for row in cm:
+    out = ','.join(map(str, row))
     print(out, file=sys.stdout)
-
-    print(file=sys.stdout)
-
-    preds.append(predict.astype(np.object))
-    preds.append(y_test.astype(np.object))
-    preds = np.column_stack(preds)
-    for tree in preds:
-        out = ','.join(map(str, tree))
-        print(out, file=sys.stdout)
-
-    print(file=sys.stdout)
-
-    print(
-          '{:.12f}'.format(np.round(accuracy, 16)),
-          file=sys.stdout
-          )
